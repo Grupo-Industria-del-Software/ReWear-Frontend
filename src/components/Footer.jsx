@@ -73,15 +73,11 @@ const styles = {
         ':nth-child(2)': { 
             textAlign: 'center'
         },
-        ':nth-child(3)': { 
-            textAlign: 'right',
-            display: 'flex',
-            flexDirection: 'flex-end',
-            alignItems: 'flex-end', 
-            '@media (max-width: 768px)': {
-                textAlign: 'center',
-                alignItems: 'center'
-            }
+        ':nth-child(3)': {
+          textAlign: 'right',
+          '@media (max-width: 768px)': {
+            textAlign: 'center'
+          }
         }
     },
     footerTitle: {
@@ -112,7 +108,7 @@ const styles = {
         display: 'flex',
         gap: '1.5rem',
         marginTop: '1rem',
-        justifyContent: 'flex-end', 
+        justifyContent: 'center', 
         width: '100%', 
         '@media (max-width: 768px)': {
             justifyContent: 'center'

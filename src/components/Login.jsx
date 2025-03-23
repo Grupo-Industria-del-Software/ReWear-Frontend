@@ -1,20 +1,92 @@
 import { useState } from 'react';
-import { FiLock, FiUser, FiShoppingBag, FiHeart } from "react-icons/fi";
+import { FiLock, FiUser, FiShoppingBag, FiHeart, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
 import { motion } from "framer-motion";
 
 const Login = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState('');
+
+  const validateForm = () => {
+    const newErrors = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email es requerido';
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = 'Email inválido';
+    }
+
+    if (!formData.password.trim()) {
+      newErrors.password = 'Contraseña es requerida';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Lógica de autenticación
-    console.log('Credenciales:', { username, password });
+    setSubmitError('');
+    setErrors({}); 
+
+  const requiredFields = ['email', 'password'];
+  const emptyFields = requiredFields.filter(field => !formData[field].trim());
+
+    if (emptyFields.length > 0) {
+      setSubmitError('Por favor completa todos los campos');
+      const newErrors = {};
+      emptyFields.forEach(field => {
+        newErrors[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} es requerido`;
+      });
+      setErrors(newErrors);
+      return;
+    }
+
+    if (validateForm()) {
+      // Simular verificación de credenciales
+      const mockUsers = [
+        { email: "usuario@ejemplo.com", password: "Password123" },
+        { email: "vendedor@ejemplo.com", password: "Vendedor123" }
+      ];
+  
+      const userExists = mockUsers.some(user => 
+        user.email === formData.email && user.password === formData.password
+      );
+  
+      if (userExists) {
+        setIsSuccess(true);
+        setTimeout(() => setIsSuccess(false), 3000);
+      } else {
+        const emailExists = mockUsers.some(user => user.email === formData.email);
+        
+        if (emailExists) {
+          setErrors({ password: 'Contraseña incorrecta' });
+          setSubmitError('La contraseña ingresada es incorrecta');
+        } else {
+          setErrors({ email: 'Email no registrado' });
+          setSubmitError('Credenciales no válidas');
+        }
+      }
+    }
+  };
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+    if (errors[e.target.name]) {
+      setErrors(prev => ({...prev, [e.target.name]: ''}));
+    }
   };
 
   return (
     <div style={styles.container}>
-      
       <div style={styles.backgroundCircle1}></div>
       <div style={styles.backgroundCircle2}></div>
       <div style={styles.backgroundCircle3}></div>
@@ -24,6 +96,28 @@ const Login = () => {
         animate={{ scale: 1, opacity: 1 }}
         style={styles.loginCard}
       >
+        {isSuccess && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={styles.successMessage}
+          >
+            <FiCheckCircle style={styles.successIcon} />
+            ¡Sesión iniciada exitosamente!
+          </motion.div>
+        )}
+
+        {submitError && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={styles.errorMessage}
+          >
+            <FiAlertCircle style={styles.errorIcon} />
+            {submitError}
+          </motion.div>
+        )}
+
         <div style={styles.header}>
           <div style={styles.logo}>
             <FiShoppingBag size={48} color="#A26964" />
@@ -35,17 +129,18 @@ const Login = () => {
           </h1>
         </div>
 
-        {/* Formulario */}
         <form onSubmit={handleSubmit} style={styles.form}>
           <motion.div whileHover={{ scale: 1.02 }} style={styles.inputContainer}>
             <FiUser style={styles.inputIcon} />
             <input
-              type="text"
-              placeholder="Usuario"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              type="email"
+              placeholder="Email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
               style={styles.input}
             />
+            {errors.email && <span style={styles.errorText}>{errors.email}</span>}
           </motion.div>
 
           <motion.div whileHover={{ scale: 1.02 }} style={styles.inputContainer}>
@@ -53,10 +148,12 @@ const Login = () => {
             <input
               type="password"
               placeholder="Contraseña"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
               style={styles.input}
             />
+            {errors.password && <span style={styles.errorText}>{errors.password}</span>}
           </motion.div>
 
           <motion.button
@@ -154,6 +251,8 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     boxShadow: '0 5px 15px rgba(215, 164, 154, 0.1)',
+    position: 'relative', 
+    marginBottom: '1.5rem' 
   },
   inputIcon: {
     color: '#A26964',
@@ -182,6 +281,42 @@ const styles = {
     justifyContent: 'center',
     transition: 'all 0.3s ease',
     fontFamily: "'Poppins', sans-serif",
+  },
+  successMessage: {
+    backgroundColor: '#C2D2C7',
+    color: '#F8F5F2',
+    padding: '1rem',
+    borderRadius: '15px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: '2rem',
+    gap: '0.5rem'
+  },
+  successIcon: {
+    fontSize: '1.2rem'
+  },
+  errorMessage: {
+    backgroundColor: '#A26964',
+    color: '#F8F5F2',
+    padding: '1rem',
+    borderRadius: '15px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: '2rem',
+    gap: '0.5rem'
+  },
+  errorIcon: {
+    fontSize: '1.2rem'
+  },
+  errorText: {
+    color: '#A26964',
+    fontSize: '0.8rem',
+    position: 'absolute',
+    bottom: '-1.5rem',
+    left: '0',
+    whiteSpace: 'nowrap'
   },
   footer: {
     marginTop: '2rem',
