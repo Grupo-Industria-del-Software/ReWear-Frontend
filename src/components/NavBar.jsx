@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
-import { FiShoppingBag } from "react-icons/fi";
+import { FiShoppingBag, FiUser } from "react-icons/fi";
 
-const NavBar = () => {
+const NavBar = ( {isLoggedIn} ) => {
   return (
     <nav style={styles.navbar}>
       <div style={styles.innerContainer}>
@@ -40,13 +40,23 @@ const NavBar = () => {
         >
           Contacto
         </motion.a>
-        <motion.a
-          href="/login"
-          style={styles.navButton}
-          whileHover={{ scale: 1.05, backgroundColor: "#C2D2C7" }}
-        >
-          Comenzar
-        </motion.a>
+        {isLoggedIn ? (
+            <motion.a
+              href="/profile"
+              style={styles.navButton}
+              whileHover={{ scale: 1.05, backgroundColor: "#C2D2C7" }}
+            >
+              <FiUser size={20} />
+            </motion.a>
+          ) : (
+            <motion.a
+              href="/login"
+              style={styles.navButton}
+              whileHover={{ scale: 1.05, backgroundColor: "#C2D2C7" }}
+            >
+              Comenzar
+            </motion.a>
+          )}
       </div>
       </div>
     </nav>
