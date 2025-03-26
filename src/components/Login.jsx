@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FiLock, FiUser, FiShoppingBag, FiHeart, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
+import { FiLock, FiUser, FiShoppingBag, FiHeart, FiCheckCircle, FiAlertCircle, FiEye, FiEyeOff } from "react-icons/fi";
 import { motion } from "framer-motion";
 
 const Login = () => {
@@ -29,13 +29,13 @@ const Login = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError('');
-    setErrors({}); 
+    setErrors({});
 
-  const requiredFields = ['email', 'password'];
-  const emptyFields = requiredFields.filter(field => !formData[field].trim());
+    const requiredFields = ['email', 'password'];
+    const emptyFields = requiredFields.filter(field => !formData[field].trim());
 
     if (emptyFields.length > 0) {
       setSubmitError('Por favor completa todos los campos');
@@ -47,34 +47,50 @@ const Login = () => {
       return;
     }
 
-    if (validateForm()) {
-      // Simular verificación de credenciales
-      const mockUsers = [
-        { email: "usuario@ejemplo.com", password: "Password123" },
-        { email: "vendedor@ejemplo.com", password: "Vendedor123" }
-      ];
-  
-      const userExists = mockUsers.some(user => 
-        user.email === formData.email && user.password === formData.password
-      );
-  
-      if (userExists) {
-        setIsSuccess(true);
-        setTimeout(() => setIsSuccess(false), 3000);
-      } else {
-        const emailExists = mockUsers.some(user => user.email === formData.email);
-        
-        if (emailExists) {
-          setErrors({ password: 'Contraseña incorrecta' });
-          setSubmitError('La contraseña ingresada es incorrecta');
-        } else {
-          setErrors({ email: 'Email no registrado' });
-          setSubmitError('Credenciales no válidas');
-        }
-      }
-    }
-  };
+    if (!validateForm()) return;
 
+    try {
+      const response = await fetch('https://localhost:7039/api/auth/login', { 
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password
+        }),
+      });
+
+      const responseText = await response.text();
+      const data = responseText ? JSON.parse(responseText) : {};
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Credenciales inválidas');
+      }
+
+      setIsSuccess(true);
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+  
+      setTimeout(() => {
+        window.location.href = '/home';
+      }, 3000);
+
+  } catch (error) {
+    setIsSuccess(false);
+
+    if (error instanceof SyntaxError) {
+      console.error('Error parsing JSON:', error);
+      setSubmitError('Formato de respuesta inválido del servidor');
+    } else {
+      setSubmitError(error.message || 'Error de conexión');
+    }
+    
+    if (error.errors) {
+      setErrors(error.errors);
+    }
+  }
+};
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -84,6 +100,8 @@ const Login = () => {
       setErrors(prev => ({...prev, [e.target.name]: ''}));
     }
   };
+
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div style={styles.container}>
@@ -146,13 +164,21 @@ const Login = () => {
           <motion.div whileHover={{ scale: 1.02 }} style={styles.inputContainer}>
             <FiLock style={styles.inputIcon} />
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Contraseña"
               name="password"
               value={formData.password}
               onChange={handleChange}
               style={styles.input}
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              style={styles.togglePasswordButton}
+              aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+            >
+              {showPassword ? <FiEyeOff /> : <FiEye />}
+            </button>
             {errors.password && <span style={styles.errorText}>{errors.password}</span>}
           </motion.div>
 
@@ -266,6 +292,24 @@ const styles = {
     flex: 1,
     backgroundColor: 'transparent',
     fontFamily: "'Poppins', sans-serif",
+  },
+  togglePasswordButton: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    padding: '8px',
+    color: '#A26964',
+    position: 'absolute',
+    right: '10px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    '&:hover': {
+      color: '#7a4f4a',
+    },
+    '&:focus': {
+      outline: 'none',
+      boxShadow: '0 0 0 2px rgba(162, 105, 100, 0.3)',
+    }
   },
   button: {
     backgroundColor: '#A26964',
