@@ -30,7 +30,9 @@ const Sidebar = () => {
   return (
     <div style={sidebarStyle}>
       {/* Logo de ReWear */}
-      <div style={logoStyle}>ReWear</div>
+      <Link to="/admin" style={{ textDecoration: "none" }}>
+        <div style={logoStyle}>ReWear</div>
+      </Link>
 
       {/* Menú principal */}
       <ul style={menuStyle}>
@@ -55,6 +57,24 @@ const Sidebar = () => {
           {/* Submenú de usuarios y roles */}
           {userMenuOpen && (
             <ul style={subMenuStyle}>
+              <li style={subMenuItemStyle}>
+                <Link
+                  to="/admin/users"
+                  style={{
+                    ...linkStyle,
+                    fontWeight: location.pathname === "/admin/users" ? "bold" : "normal",
+                    padding: "5px", 
+                    borderRadius: "4px",
+                    display: "block",
+                    width: "100%",
+                    marginLeft: "10px",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                >
+                  Usuarios
+                </Link>
+              </li>
               <li style={subMenuItemStyle}>
                 <Link
                   to="/admin/registration-requests"
