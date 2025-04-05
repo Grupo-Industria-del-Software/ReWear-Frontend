@@ -210,7 +210,7 @@ const AdminUsers = () => {
   );
 };
 
-// Estilos actualizados con tu paleta de colores y fuentes
+
 const styles = {
   container: {
     padding: '20px',
