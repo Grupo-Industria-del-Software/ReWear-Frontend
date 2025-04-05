@@ -10,7 +10,6 @@ const AdminUsers = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [roleFilter, setRoleFilter] = useState('all');
   
-
   const [currentPage, setCurrentPage] = useState(0);
   const usersPerPage = 10;
   const pageCount = Math.ceil(users.length / usersPerPage);
@@ -18,7 +17,7 @@ const AdminUsers = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch('https://localhost:7039/api/admin/users', {
+        const response = await fetch('https://localhost:7039/api/Users', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
@@ -40,15 +39,15 @@ const AdminUsers = () => {
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = 
-      user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.phoneNumber?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus = 
       statusFilter === 'all' || 
-      (statusFilter === 'active' && user.isActive) || 
-      (statusFilter === 'inactive' && !user.isActive);
+      (statusFilter === 'active' && user.active) || 
+      (statusFilter === 'inactive' && !user.active);
 
     const matchesRole = 
       roleFilter === 'all' || 
@@ -63,19 +62,21 @@ const AdminUsers = () => {
     (currentPage + 1) * usersPerPage
   );
 
-  const toggleUserStatus = async (userId) => {
+  const toggleUserStatus = async (userId, currentStatus) => {
     try {
-      const response = await fetch(`https://localhost:7039/api/admin/users/${userId}/toggle-active`, {
+      const response = await fetch(`https://localhost:7039/api/Users/${userId}/status`, {
         method: 'PATCH',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(!currentStatus)
       });
 
       if (!response.ok) throw new Error('Error al cambiar estado');
 
       setUsers(users.map(user => 
-        user.id === userId ? { ...user, isActive: !user.isActive } : user
+        user.id === userId ? { ...user, active: !user.active } : user
       ));
     } catch (err) {
       alert(err.message);
@@ -160,21 +161,22 @@ const AdminUsers = () => {
                   <td style={styles.td}>{user.roleId === 1 ? 'Admin' : 'Usuario'}</td>
                   <td style={{ 
                     ...styles.td, 
-                    color: user.isActive ? '#28a745' : '#dc3545',
+                    color: user.active ? '#A2B0CA' : '#A26964',
                     fontWeight: 'bold'
                   }}>
-                    {user.isActive ? 'Activo' : 'Inactivo'}
+                    {user.active ? 'Activo' : 'Inactivo'}
                   </td>
                   <td style={styles.td}>
                     <button 
-                      onClick={() => toggleUserStatus(user.id)}
+                      onClick={() => toggleUserStatus(user.id, user.active)}
                       style={{
                         ...styles.button,
-                        backgroundColor: user.isActive ? '#dc3545' : '#28a745'
+                        backgroundColor: user.active ? '#A26964' : '#C2D2C7',
+                        color: user.active ? '#E1DAD3' : '#333'
                       }}
                     >
-                      {user.isActive ? <FaUserSlash /> : <FaUserCheck />}
-                      {user.isActive ? ' Desactivar' : ' Activar'}
+                      {user.active ? <FaUserSlash /> : <FaUserCheck />}
+                      {user.active ? ' Desactivar' : ' Activar'}
                     </button>
                   </td>
                 </tr>
@@ -208,21 +210,22 @@ const AdminUsers = () => {
   );
 };
 
-// Estilos 
+// Estilos actualizados con tu paleta de colores y fuentes
 const styles = {
   container: {
     padding: '20px',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#E1DAD3', // Ivory
     borderRadius: '8px',
     margin: '20px',
-    boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+    boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+    fontFamily: 'Poppins, sans-serif'
   },
   title: {
-    color: '#343a40',
+    color: '#A26964', // Coffee
     fontFamily: 'Playfair Display, serif',
     marginBottom: '25px',
     fontSize: '1.8rem',
-    borderBottom: '2px solid #dee2e6',
+    borderBottom: '2px solid #A2B0CA', // Baby blue
     paddingBottom: '10px'
   },
   filterContainer: {
@@ -243,15 +246,17 @@ const styles = {
     left: '10px',
     top: '50%',
     transform: 'translateY(-50%)',
-    color: '#6c757d'
+    color: '#A26964' // Coffee
   },
   searchInput: {
     width: '100%',
     padding: '10px 10px 10px 35px',
     borderRadius: '4px',
-    border: '1px solid #ced4da',
+    border: '1px solid #A2B0CA', // Baby blue
     fontSize: '1rem',
-    boxSizing: 'border-box'
+    boxSizing: 'border-box',
+    backgroundColor: '#E4C9B6', // Nude
+    fontFamily: 'Poppins, sans-serif'
   },
   filters: {
     display: 'flex',
@@ -264,58 +269,65 @@ const styles = {
     gap: '8px'
   },
   filterIcon: {
-    color: '#6c757d'
+    color: '#A26964' // Coffee
   },
   select: {
     padding: '8px 12px',
     borderRadius: '4px',
-    border: '1px solid #ced4da',
-    backgroundColor: 'white',
-    cursor: 'pointer'
+    border: '1px solid #A2B0CA', // Baby blue
+    backgroundColor: '#E4C9B6', // Nude
+    cursor: 'pointer',
+    fontFamily: 'Poppins, sans-serif',
+    color: '#333'
   },
   tableContainer: {
     overflowX: 'auto',
     borderRadius: '6px',
-    border: '1px solid #dee2e6',
-    marginBottom: '20px'
+    border: '1px solid #A2B0CA', // Baby blue
+    marginBottom: '20px',
+    backgroundColor: '#E4C9B6' // Nude
   },
   table: {
     width: '100%',
     borderCollapse: 'collapse',
-    backgroundColor: 'white',
+    backgroundColor: '#E1DAD3', // Ivory
     fontSize: '0.9rem'
   },
   th: {
     padding: '12px 15px',
     textAlign: 'left',
-    backgroundColor: '#343a40',
-    color: 'white',
+    backgroundColor: '#A26964', // Coffee
+    color: '#E1DAD3', // Ivory
     fontWeight: '600',
-    borderBottom: '2px solid #dee2e6'
+    borderBottom: '2px solid #A2B0CA', // Baby blue
+    fontFamily: 'Poppins, sans-serif'
   },
   tr: {
-    borderBottom: '1px solid #dee2e6',
+    borderBottom: '1px solid #A2B0CA', // Baby blue
     '&:hover': {
-      backgroundColor: '#f8f9fa'
+      backgroundColor: '#E4C9B6' // Nude
     }
   },
   td: {
     padding: '12px 15px',
-    verticalAlign: 'middle'
+    verticalAlign: 'middle',
+    fontFamily: 'Poppins, sans-serif'
   },
   button: {
     border: 'none',
-    padding: '6px 12px',
+    padding: '8px 15px',
     borderRadius: '4px',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     gap: '5px',
-    color: 'white',
     fontSize: '0.85rem',
     transition: 'all 0.2s',
+    fontFamily: 'Poppins, sans-serif',
+    fontWeight: '500',
     '&:hover': {
-      opacity: '0.9'
+      opacity: '0.9',
+      transform: 'scale(1.02)'
     }
   },
   pagination: {
@@ -327,34 +339,39 @@ const styles = {
       margin: '0 5px',
       '& a': {
         padding: '5px 10px',
-        border: '1px solid #dee2e6',
+        border: '1px solid #A2B0CA', // Baby blue
         borderRadius: '3px',
         cursor: 'pointer',
+        backgroundColor: '#E4C9B6', // Nude
+        color: '#333',
         '&:hover': {
-          backgroundColor: '#e9ecef'
+          backgroundColor: '#A2B0CA', // Baby blue
+          color: '#E1DAD3' // Ivory
         }
       }
     },
     '& .active a': {
-      backgroundColor: '#007bff',
-      color: 'white',
-      borderColor: '#007bff'
+      backgroundColor: '#A26964', // Coffee
+      color: '#E1DAD3', // Ivory
+      borderColor: '#A26964' // Coffee
     }
   },
   loading: {
     textAlign: 'center',
     padding: '20px',
     fontSize: '1.2rem',
-    color: '#6c757d'
+    color: '#A26964', // Coffee
+    fontFamily: 'Poppins, sans-serif'
   },
   error: {
     textAlign: 'center',
     padding: '20px',
     fontSize: '1.2rem',
-    color: '#dc3545',
-    backgroundColor: '#f8d7da',
+    color: '#A26964', // Coffee
+    backgroundColor: '#E4C9B6', // Nude
     borderRadius: '4px',
-    border: '1px solid #f5c6cb'
+    border: '1px solid #A26964', // Coffee
+    fontFamily: 'Poppins, sans-serif'
   }
 };
 
