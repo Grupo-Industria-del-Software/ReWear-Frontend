@@ -1,107 +1,141 @@
 import { useState } from 'react';
+import { jwtDecode } from 'jwt-decode';
 import { FiLock, FiUser, FiShoppingBag, FiHeart, FiCheckCircle, FiAlertCircle, FiEye, FiEyeOff } from "react-icons/fi";
 import { motion } from "framer-motion";
 
-const Login = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+// URL base de tu API
+const API_BASE = 'https://localhost:44367/api/Auth';
+
+// Función para refrescar el access token
+async function refreshAccessToken() {
+  const refreshToken = sessionStorage.getItem('refreshToken');
+  if (!refreshToken) throw new Error('No hay refresh token disponible');
+
+  const res = await fetch(`${API_BASE}/refresh-token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken }),
   });
+
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : {};
+
+  if (!res.ok || !data.accessToken) {
+    sessionStorage.clear();
+    throw new Error(data.message || 'No se pudo refrescar el token');
+  }
+
+  // Decodifica el nuevo accessToken
+  const { sub: userId } = jwtDecode(data.accessToken);
+
+  // Guarda los nuevos tokens y el userId
+  sessionStorage.setItem('accessToken', data.accessToken);
+  sessionStorage.setItem('refreshToken', data.refreshToken);
+  sessionStorage.setItem('userId', userId);
+
+  return data.accessToken;
+}
+
+// Wrapper para fetch que añade Authorization y reintenta tras 401
+async function authFetch(url, options = {}) {
+  let token = sessionStorage.getItem('accessToken');
+
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(options.headers || {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+
+  let res = await fetch(url, { ...options, headers });
+
+  if (res.status === 401) {
+    try {
+      const newToken = await refreshAccessToken();
+      const retryHeaders = { ...headers, Authorization: `Bearer ${newToken}` };
+      res = await fetch(url, { ...options, headers: retryHeaders });
+    } catch (err) {
+      window.location.href = '/login';
+      throw err;
+    }
+  }
+
+  return res;
+}
+
+const Login = () => {
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [isSuccess, setIsSuccess] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const validateForm = () => {
     const newErrors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email es requerido';
-    } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = 'Email inválido';
-    }
-
-    if (!formData.password.trim()) {
-      newErrors.password = 'Contraseña es requerida';
-    }
-
+    if (!formData.email.trim()) newErrors.email = 'Email es requerido';
+    else if (!emailRegex.test(formData.email)) newErrors.email = 'Email inválido';
+    if (!formData.password.trim()) newErrors.password = 'Contraseña es requerida';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitError('');
+    setSubmitError(''); 
     setErrors({});
-
-    const requiredFields = ['email', 'password'];
-    const emptyFields = requiredFields.filter(field => !formData[field].trim());
-
-    if (emptyFields.length > 0) {
-      setSubmitError('Por favor completa todos los campos');
-      const newErrors = {};
-      emptyFields.forEach(field => {
-        newErrors[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} es requerido`;
-      });
-      setErrors(newErrors);
-      return;
-    }
 
     if (!validateForm()) return;
 
     try {
-      const response = await fetch('https://localhost:7039/api/auth/login', { 
+      const res = await fetch(`${API_BASE}/login`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
       });
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : {};
 
-      const responseText = await response.text();
-      const data = responseText ? JSON.parse(responseText) : {};
-
-      if (!response.ok) {
+      if (!res.ok || !data.accessToken) {
         throw new Error(data.message || 'Credenciales inválidas');
       }
 
+      // Decodifica con jwt-decode
+      const { sub: userId, role } = jwtDecode(data.accessToken);
+
+      // Guarda tokens y userId en sessionStorage
+      sessionStorage.setItem('accessToken', data.accessToken);
+      sessionStorage.setItem('refreshToken', data.refreshToken);
+      sessionStorage.setItem('userId', userId);
+
       setIsSuccess(true);
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
-  
+
       setTimeout(() => {
-        window.location.href = '/home';
-      }, 3000);
+        switch (role) {
+          case 'Customer':
+            window.location.href = '/customer';
+            break;
+          case 'Seller':
+            window.location.href = '/provider';
+            break;
+          case 'Admin':
+            window.location.href = '/admin';
+            break;
+          default:
+            window.location.href = '/home';
+        }
+      }, 1500);
 
-  } catch (error) {
-    setIsSuccess(false);
-
-    if (error instanceof SyntaxError) {
-      console.error('Error parsing JSON:', error);
-      setSubmitError('Formato de respuesta inválido del servidor');
-    } else {
+    } catch (error) {
+      console.error(error);
+      setIsSuccess(false);
       setSubmitError(error.message || 'Error de conexión');
-    }
-    
-    if (error.errors) {
-      setErrors(error.errors);
-    }
-  }
-};
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-    if (errors[e.target.name]) {
-      setErrors(prev => ({...prev, [e.target.name]: ''}));
     }
   };
 
-  const [showPassword, setShowPassword] = useState(false);
+  const handleChange = (e) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    if (errors[e.target.name]) setErrors(prev => ({ ...prev, [e.target.name]: '' }));
+  };
 
   return (
     <div style={styles.container}>
@@ -418,4 +452,5 @@ const styles = {
   },
 };
 
+export { authFetch };
 export default Login;

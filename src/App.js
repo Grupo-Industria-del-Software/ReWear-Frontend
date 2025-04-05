@@ -23,6 +23,9 @@ import OrderTypes from "./components/OrderTypes";
 import PaymentStatus from "./components/PaymentStatus"; 
 import OrderStatus from "./components/OrderStatus"; 
 import PaymentMethods from "./components/PaymentMethods"; 
+import ProductForm from "./components/ProductFrom";
+import ProviderPage from "./components/ProviderPage";
+
 
 function App() {
   console.log("App se está renderizando");
@@ -35,6 +38,10 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/admin/category" element={<Category />} /> 
+        <Route path="/product" element={<ProductForm/>}/> 
+        <Route path="/provider" element={<ProviderPage/>}/> 
+
+
 
         {/* Rutas de administración */}
         <Route path="/admin" element={<AdminLayout />}>

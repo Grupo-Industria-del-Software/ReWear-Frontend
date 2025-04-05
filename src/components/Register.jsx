@@ -20,7 +20,7 @@ const Register = () => {
   useEffect(() => {
     const fetchRoles = async () => {
       try {
-        const response = await fetch('https://localhost:7039/api/userroles'); 
+        const response = await fetch('https://localhost:44367/api/userroles'); 
         if (response.ok) {
           const data = await response.json();
           setRoles(data);
@@ -93,7 +93,7 @@ const Register = () => {
     }
     
     try {
-      const response = await fetch('https://localhost:7039/api/auth/register', {
+      const response = await fetch('https://localhost:44367/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -555,4 +555,4 @@ export const styles = {
   },
 };
 
-export default Register;
+export default Register; 
