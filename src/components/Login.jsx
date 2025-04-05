@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { FiLock, FiUser, FiShoppingBag, FiHeart, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
 import { motion } from "framer-motion";
+import { jwtDecode } from 'jwt-decode';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -10,6 +12,7 @@ const Login = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
+  const navigate = useNavigate();
 
   const validateForm = () => {
     const newErrors = {};
@@ -29,14 +32,13 @@ const Login = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError('');
-    setErrors({}); 
+    setErrors({});
 
-  const requiredFields = ['email', 'password'];
-  const emptyFields = requiredFields.filter(field => !formData[field].trim());
-
+    const requiredFields = ['email', 'password'];
+    const emptyFields = requiredFields.filter(field => !formData[field].trim());
     if (emptyFields.length > 0) {
       setSubmitError('Por favor completa todos los campos');
       const newErrors = {};
@@ -48,29 +50,47 @@ const Login = () => {
     }
 
     if (validateForm()) {
-      // Simular verificación de credenciales
-      const mockUsers = [
-        { email: "usuario@ejemplo.com", password: "Password123" },
-        { email: "vendedor@ejemplo.com", password: "Vendedor123" }
-      ];
-  
-      const userExists = mockUsers.some(user => 
-        user.email === formData.email && user.password === formData.password
-      );
-  
-      if (userExists) {
+      try {
+        const response = await fetch('https://localhost:44367/api/Auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+
+        if (!response.ok) {
+          const errorData = await response.text();
+          setSubmitError('Credenciales no válidas');
+          setErrors({ email: errorData });
+          return;
+        }
+
+        const data = await response.json();
+        // Se espera que la respuesta incluya { accessToken: '...', refreshToken: '...' }
+        const { accessToken, refreshToken } = data;
+        sessionStorage.setItem('accessToken', accessToken);
+        sessionStorage.setItem('refreshToken', refreshToken);
+
+        // Decodifica el token para obtener el id y el rol del usuario
+        const decoded = jwtDecode(accessToken);
+        const userId = decoded.sub; // 'sub' es el id del usuario
+        const userRole = decoded["role"];
+
         setIsSuccess(true);
         setTimeout(() => setIsSuccess(false), 3000);
-      } else {
-        const emailExists = mockUsers.some(user => user.email === formData.email);
-        
-        if (emailExists) {
-          setErrors({ password: 'Contraseña incorrecta' });
-          setSubmitError('La contraseña ingresada es incorrecta');
+
+        // Redirige según el rol
+        if (userRole === "Vendedor") {
+          navigate('/seller');
+        } else if (userRole === "Cliente") {
+          navigate('/product');
         } else {
-          setErrors({ email: 'Email no registrado' });
-          setSubmitError('Credenciales no válidas');
+          navigate('/');
         }
+      } catch (error) {
+        console.error("Error en la autenticación:", error);
+        setSubmitError('Ocurrió un error al iniciar sesión');
       }
     }
   };
@@ -81,7 +101,31 @@ const Login = () => {
       [e.target.name]: e.target.value
     });
     if (errors[e.target.name]) {
-      setErrors(prev => ({...prev, [e.target.name]: ''}));
+      setErrors(prev => ({ ...prev, [e.target.name]: '' }));
+    }
+  };
+
+  // Función para refrescar token usando fetch y sessionStorage
+  const handleRefreshToken = async () => {
+    try {
+      const refreshToken = sessionStorage.getItem('refreshToken');
+      const response = await fetch('https://localhost:44367/api/Auth/refresh-token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ refreshToken })
+      });
+      if (!response.ok) {
+        throw new Error('Error al refrescar token');
+      }
+      const data = await response.json();
+      const { accessToken, refreshToken: newRefreshToken } = data;
+      sessionStorage.setItem('accessToken', accessToken);
+      sessionStorage.setItem('refreshToken', newRefreshToken);
+    } catch (error) {
+      console.error("Error al refrescar token:", error);
+      navigate('/login');
     }
   };
 
@@ -189,8 +233,8 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     fontFamily: "'Poppins', sans-serif",
-    position: 'relative',  
-    overflow: 'hidden',     
+    position: 'relative',
+    overflow: 'hidden',
   },
   loginCard: {
     backgroundColor: '#F8F5F2',
@@ -251,8 +295,8 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     boxShadow: '0 5px 15px rgba(215, 164, 154, 0.1)',
-    position: 'relative', 
-    marginBottom: '1.5rem' 
+    position: 'relative',
+    marginBottom: '1.5rem'
   },
   inputIcon: {
     color: '#A26964',

@@ -1,19 +1,30 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiLock, FiUser, FiShoppingBag, FiHeart, FiMail, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
 import { motion } from "framer-motion";
 
 const Register = () => {
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: '',
-    userRole: 'cliente'
+    roleId: '' // Se guardará el id del rol seleccionado
   });
 
+  const [profilePicture, setProfilePicture] = useState(null);
+  const [roles, setRoles] = useState([]); // Roles obtenidos desde el backend
   const [isSuccess, setIsSuccess] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
+
+  // Cargar roles desde el backend
+  useEffect(() => {
+    fetch('https://localhost:44367/api/userroles')
+      .then(response => response.json())
+      .then(data => setRoles(data))
+      .catch(error => console.error('Error al cargar roles:', error));
+  }, []);
 
   const validateForm = () => {
     const newErrors = {};
@@ -50,6 +61,10 @@ const Register = () => {
     } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Las contraseñas no coinciden';
     }
+    
+    if (!formData.roleId) {
+      newErrors.roleId = 'Seleccione un rol';
+    }
   
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -59,37 +74,50 @@ const Register = () => {
     e.preventDefault();
     setSubmitError('');
 
-    const requiredFields = ['firstName', 'lastName', 'email', 'password', 'confirmPassword'];
-  const emptyFields = requiredFields.filter(field => !formData[field].trim());
+    if (validateForm()) {
+      const form = new FormData();
+      form.append('registerRequestDto.FirstName', formData.firstName);
+      form.append('registerRequestDto.LastName', formData.lastName);
+      form.append('registerRequestDto.Email', formData.email);
+      form.append('registerRequestDto.Password', formData.password);
+      form.append('registerRequestDto.RoleId', formData.roleId);
 
-  if (emptyFields.length > 0) {
-    setSubmitError('Por favor completa todos los campos');
-    const newErrors = {};
-    emptyFields.forEach(field => {
-      newErrors[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} es requerido`;
-    });
-    setErrors(newErrors);
-    return;
-  }
-    
-  if (validateForm()) {
-    // Simular registro
-    if (Math.random() > 0.5) {
-      setIsSuccess(true);
-      setTimeout(() => setIsSuccess(false), 3000);
-    } else {
-      setSubmitError('Error al crear la cuenta. Intente nuevamente.');
+      if (profilePicture) {
+        form.append('profilePicture', profilePicture);
+      }
+
+      fetch('https://localhost:44367/api/Auth/register', {
+        method: 'POST',
+        body: form
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Error en el registro');
+        }
+        return response.json();
+      })
+      .then(data => {
+        setIsSuccess(true);
+        setTimeout(() => setIsSuccess(false), 3000);
+        // Aquí podrías redirigir al usuario o limpiar el formulario
+      })
+      .catch(error => {
+        setSubmitError('Error al crear la cuenta. Intente nuevamente.');
+      });
     }
-  }
-};
+  };
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-    if (errors[e.target.name]) {
-      setErrors(prev => ({...prev, [e.target.name]: ''}));
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setProfilePicture(e.target.files[0]);
     }
   };
 
@@ -138,99 +166,109 @@ const Register = () => {
         </div>
 
         <form onSubmit={handleSubmit} style={styles.form}>
-  <div style={styles.rowContainer}>
-    <motion.div whileHover={{ scale: 1.02 }} style={styles.inputContainer}>
-      <FiUser style={styles.inputIcon} />
-      <input
-        type="text"
-        placeholder="Nombre"
-        name="firstName"
-        onChange={handleChange}
-        style={styles.input}
-        required
-      />
-      {errors.firstName && <span style={styles.errorText}>{errors.firstName}</span>}
-    </motion.div>
+          <div style={styles.rowContainer}>
+            <motion.div whileHover={{ scale: 1.02 }} style={styles.inputContainer}>
+              <FiUser style={styles.inputIcon} />
+              <input
+                type="text"
+                placeholder="Nombre"
+                name="firstName"
+                onChange={handleChange}
+                style={styles.input}
+                required
+              />
+              {errors.firstName && <span style={styles.errorText}>{errors.firstName}</span>}
+            </motion.div>
 
-    <motion.div whileHover={{ scale: 1.02 }} style={styles.inputContainer}>
-      <FiUser style={styles.inputIcon} />
-      <input
-        type="text"
-        placeholder="Apellido"
-        name="lastName"
-        onChange={handleChange}
-        style={styles.input}
-        required
-      />
-      {errors.lastName && <span style={styles.errorText}>{errors.lastName}</span>}
-    </motion.div>
-  </div>
+            <motion.div whileHover={{ scale: 1.02 }} style={styles.inputContainer}>
+              <FiUser style={styles.inputIcon} />
+              <input
+                type="text"
+                placeholder="Apellido"
+                name="lastName"
+                onChange={handleChange}
+                style={styles.input}
+                required
+              />
+              {errors.lastName && <span style={styles.errorText}>{errors.lastName}</span>}
+            </motion.div>
+          </div>
 
-  <div style={styles.rowContainer}>
-    <motion.div whileHover={{ scale: 1.02 }} style={styles.inputContainer}>
-      <FiMail style={styles.inputIcon} />
-      <input
-        type="email"
-        placeholder="Correo electrónico"
-        name="email"
-        onChange={handleChange}
-        style={styles.input}
-        required
-      />
-      {errors.email && <span style={styles.errorText}>{errors.email}</span>}
-    </motion.div>
+          <div style={styles.rowContainer}>
+            <motion.div whileHover={{ scale: 1.02 }} style={styles.inputContainer}>
+              <FiMail style={styles.inputIcon} />
+              <input
+                type="email"
+                placeholder="Correo electrónico"
+                name="email"
+                onChange={handleChange}
+                style={styles.input}
+                required
+              />
+              {errors.email && <span style={styles.errorText}>{errors.email}</span>}
+            </motion.div>
 
-    <motion.div whileHover={{ scale: 1.02 }} style={styles.inputContainer}>
-    <select 
-      name="userType"
-      onChange={handleChange}
-      style={styles.select}
-      value={formData.userType}
-    >
-      <option value="cliente">Quiero alquilar/comprar</option>
-      <option value="vendedor">Quiero ofrecer productos</option>
-    </select>
-    </motion.div>
-  </div>
+            <motion.div whileHover={{ scale: 1.02 }} style={styles.inputContainer}>
+              <select 
+                name="roleId"
+                onChange={handleChange}
+                style={styles.select}
+                value={formData.roleId}
+              >
+                <option value="">Selecciona un rol</option>
+                {roles.map(role => (
+                  <option key={role.id} value={role.id}>
+                    {role.rol}
+                  </option>
+                ))}
+              </select>
+              {errors.roleId && <span style={styles.errorText}>{errors.roleId}</span>}
+            </motion.div>
+          </div>
 
-  <div style={styles.rowContainer}>
-    <motion.div whileHover={{ scale: 1.02 }} style={styles.inputContainer}>
-      <FiLock style={styles.inputIcon} />
-      <input
-        type="password"
-        placeholder="Contraseña"
-        name="password"
-        onChange={handleChange}
-        style={styles.input}
-        required
-      />
-      {errors.password && <span style={styles.errorText}>{errors.password}</span>}
-    </motion.div>
+          <div style={styles.rowContainer}>
+            <motion.div whileHover={{ scale: 1.02 }} style={styles.inputContainer}>
+              <FiLock style={styles.inputIcon} />
+              <input
+                type="password"
+                placeholder="Contraseña"
+                name="password"
+                onChange={handleChange}
+                style={styles.input}
+                required
+              />
+              {errors.password && <span style={styles.errorText}>{errors.password}</span>}
+            </motion.div>
 
-    <motion.div whileHover={{ scale: 1.02 }} style={styles.inputContainer}>
-      <FiLock style={styles.inputIcon} />
-      <input
-        type="password"
-        placeholder="Confirmar contraseña"
-        name="confirmPassword"
-        onChange={handleChange}
-        style={styles.input}
-        required
-      />
-      {errors.confirmPassword && <span style={styles.errorText}>{errors.confirmPassword}</span>}
-    </motion.div>
-  </div>
+            <motion.div whileHover={{ scale: 1.02 }} style={styles.inputContainer}>
+              <FiLock style={styles.inputIcon} />
+              <input
+                type="password"
+                placeholder="Confirmar contraseña"
+                name="confirmPassword"
+                onChange={handleChange}
+                style={styles.input}
+                required
+              />
+              {errors.confirmPassword && <span style={styles.errorText}>{errors.confirmPassword}</span>}
+            </motion.div>
+          </div>
 
-  <motion.button
-    whileHover={{ scale: 1.05 }}
-    whileTap={{ scale: 0.95 }}
-    style={styles.button}
-    type="submit"
-  >
-    <FiHeart style={{ marginRight: '8px' }} />
-    Crear cuenta
-  </motion.button>
-</form>
+          {/* Input para subir la imagen de perfil */}
+          <div style={{ marginBottom: '1.5rem' }}>
+            <input type="file" accept="image/*" onChange={handleFileChange} />
+          </div>
+
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            style={styles.button}
+            type="submit"
+          >
+            <FiHeart style={{ marginRight: '8px' }} />
+            Crear cuenta
+          </motion.button>
+        </form>
 
         <motion.div 
           style={styles.footer}
@@ -420,10 +458,6 @@ export const styles = {
     ':hover': {
       color: '#C2D2C7',
     },
-  },
-  dot: {
-    color: '#E4C9B6',
-    fontSize: '1.2rem',
   },
   backgroundCircle1: {
     position: 'absolute',
