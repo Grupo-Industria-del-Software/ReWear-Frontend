@@ -7,6 +7,8 @@ import LandingPage from "./components/LandingPage";
 import AdminLayout from "./components/AdminLayout";
 import AdminDashboard from "./components/AdminDashboard";
 import AdminUsers from "./components/AdminUsers";
+import RegistrationRequests from "./components/RegistrationRequests";
+import RoleManagement from "./components/RoleManagement";
 import AdminSubscriptions from "./components/AdminSubscriptions";
 import AdminReports from "./components/AdminReports";
 import CatalogManager from "./components/CatalogManager";
@@ -56,6 +58,8 @@ function App() {
 
           <Route index element={<AdminDashboard />} />
           <Route path="users" element={<AdminUsers />} />
+          <Route path="registration-requests" element={<RegistrationRequests />} />
+          <Route path="role-management" element={<RoleManagement />} />          
           <Route path="subscriptions" element={<AdminSubscriptions />} />
           <Route path="reports" element={<AdminReports />} />
           <Route path="catalogs" element={<CatalogManager />} />

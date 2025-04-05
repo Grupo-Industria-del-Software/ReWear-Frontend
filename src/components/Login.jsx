@@ -1,132 +1,140 @@
 import { useState } from 'react';
-import { FiLock, FiUser, FiShoppingBag, FiHeart, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
-import { motion } from "framer-motion";
 import { jwtDecode } from 'jwt-decode';
-import { useNavigate } from 'react-router-dom';
+import { FiLock, FiUser, FiShoppingBag, FiHeart, FiCheckCircle, FiAlertCircle, FiEye, FiEyeOff } from "react-icons/fi";
+import { motion } from "framer-motion";
+
+// URL base de tu API
+const API_BASE = 'https://localhost:44367/api/Auth';
+
+// Función para refrescar el access token
+async function refreshAccessToken() {
+  const refreshToken = sessionStorage.getItem('refreshToken');
+  if (!refreshToken) throw new Error('No hay refresh token disponible');
+
+  const res = await fetch(`${API_BASE}/refresh-token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken }),
+  });
+
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : {};
+
+  if (!res.ok || !data.accessToken) {
+    sessionStorage.clear();
+    throw new Error(data.message || 'No se pudo refrescar el token');
+  }
+
+  // Decodifica el nuevo accessToken
+  const { sub: userId } = jwtDecode(data.accessToken);
+
+  // Guarda los nuevos tokens y el userId
+  sessionStorage.setItem('accessToken', data.accessToken);
+  sessionStorage.setItem('refreshToken', data.refreshToken);
+  sessionStorage.setItem('userId', userId);
+
+  return data.accessToken;
+}
+
+// Wrapper para fetch que añade Authorization y reintenta tras 401
+async function authFetch(url, options = {}) {
+  let token = sessionStorage.getItem('accessToken');
+
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(options.headers || {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+
+  let res = await fetch(url, { ...options, headers });
+
+  if (res.status === 401) {
+    try {
+      const newToken = await refreshAccessToken();
+      const retryHeaders = { ...headers, Authorization: `Bearer ${newToken}` };
+      res = await fetch(url, { ...options, headers: retryHeaders });
+    } catch (err) {
+      window.location.href = '/login';
+      throw err;
+    }
+  }
+
+  return res;
+}
 
 const Login = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [isSuccess, setIsSuccess] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
-  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
   const validateForm = () => {
     const newErrors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email es requerido';
-    } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = 'Email inválido';
-    }
-
-    if (!formData.password.trim()) {
-      newErrors.password = 'Contraseña es requerida';
-    }
-
+    if (!formData.email.trim()) newErrors.email = 'Email es requerido';
+    else if (!emailRegex.test(formData.email)) newErrors.email = 'Email inválido';
+    if (!formData.password.trim()) newErrors.password = 'Contraseña es requerida';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitError('');
+    setSubmitError(''); 
     setErrors({});
 
-    const requiredFields = ['email', 'password'];
-    const emptyFields = requiredFields.filter(field => !formData[field].trim());
-    if (emptyFields.length > 0) {
-      setSubmitError('Por favor completa todos los campos');
-      const newErrors = {};
-      emptyFields.forEach(field => {
-        newErrors[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} es requerido`;
+    if (!validateForm()) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
       });
-      setErrors(newErrors);
-      return;
-    }
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : {};
 
-    if (validateForm()) {
-      try {
-        const response = await fetch('https://localhost:44367/api/Auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(formData)
-        });
-
-        if (!response.ok) {
-          const errorData = await response.text();
-          setSubmitError('Credenciales no válidas');
-          setErrors({ email: errorData });
-          return;
-        }
-
-        const data = await response.json();
-        // Se espera que la respuesta incluya { accessToken: '...', refreshToken: '...' }
-        const { accessToken, refreshToken } = data;
-        sessionStorage.setItem('accessToken', accessToken);
-        sessionStorage.setItem('refreshToken', refreshToken);
-
-        // Decodifica el token para obtener el id y el rol del usuario
-        const decoded = jwtDecode(accessToken);
-        const userId = decoded.sub; // 'sub' es el id del usuario
-        const userRole = decoded["role"];
-
-        setIsSuccess(true);
-        setTimeout(() => setIsSuccess(false), 3000);
-
-        // Redirige según el rol
-        if (userRole === "Vendedor") {
-          navigate('/seller');
-        } else if (userRole === "Cliente") {
-          navigate('/product');
-        } else {
-          navigate('/');
-        }
-      } catch (error) {
-        console.error("Error en la autenticación:", error);
-        setSubmitError('Ocurrió un error al iniciar sesión');
+      if (!res.ok || !data.accessToken) {
+        throw new Error(data.message || 'Credenciales inválidas');
       }
+
+      // Decodifica con jwt-decode
+      const { sub: userId, role } = jwtDecode(data.accessToken);
+
+      // Guarda tokens y userId en sessionStorage
+      sessionStorage.setItem('accessToken', data.accessToken);
+      sessionStorage.setItem('refreshToken', data.refreshToken);
+      sessionStorage.setItem('userId', userId);
+
+      setIsSuccess(true);
+
+      setTimeout(() => {
+        switch (role) {
+          case 'Customer':
+            window.location.href = '/customer';
+            break;
+          case 'Seller':
+            window.location.href = '/provider';
+            break;
+          case 'Admin':
+            window.location.href = '/admin';
+            break;
+          default:
+            window.location.href = '/home';
+        }
+      }, 1500);
+
+    } catch (error) {
+      console.error(error);
+      setIsSuccess(false);
+      setSubmitError(error.message || 'Error de conexión');
     }
   };
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-    if (errors[e.target.name]) {
-      setErrors(prev => ({ ...prev, [e.target.name]: '' }));
-    }
-  };
-
-  // Función para refrescar token usando fetch y sessionStorage
-  const handleRefreshToken = async () => {
-    try {
-      const refreshToken = sessionStorage.getItem('refreshToken');
-      const response = await fetch('https://localhost:44367/api/Auth/refresh-token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ refreshToken })
-      });
-      if (!response.ok) {
-        throw new Error('Error al refrescar token');
-      }
-      const data = await response.json();
-      const { accessToken, refreshToken: newRefreshToken } = data;
-      sessionStorage.setItem('accessToken', accessToken);
-      sessionStorage.setItem('refreshToken', newRefreshToken);
-    } catch (error) {
-      console.error("Error al refrescar token:", error);
-      navigate('/login');
-    }
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    if (errors[e.target.name]) setErrors(prev => ({ ...prev, [e.target.name]: '' }));
   };
 
   return (
@@ -190,13 +198,21 @@ const Login = () => {
           <motion.div whileHover={{ scale: 1.02 }} style={styles.inputContainer}>
             <FiLock style={styles.inputIcon} />
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Contraseña"
               name="password"
               value={formData.password}
               onChange={handleChange}
               style={styles.input}
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              style={styles.togglePasswordButton}
+              aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+            >
+              {showPassword ? <FiEyeOff /> : <FiEye />}
+            </button>
             {errors.password && <span style={styles.errorText}>{errors.password}</span>}
           </motion.div>
 
@@ -233,8 +249,8 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     fontFamily: "'Poppins', sans-serif",
-    position: 'relative',
-    overflow: 'hidden',
+    position: 'relative',  
+    overflow: 'hidden',     
   },
   loginCard: {
     backgroundColor: '#F8F5F2',
@@ -295,8 +311,8 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     boxShadow: '0 5px 15px rgba(215, 164, 154, 0.1)',
-    position: 'relative',
-    marginBottom: '1.5rem'
+    position: 'relative', 
+    marginBottom: '1.5rem' 
   },
   inputIcon: {
     color: '#A26964',
@@ -310,6 +326,24 @@ const styles = {
     flex: 1,
     backgroundColor: 'transparent',
     fontFamily: "'Poppins', sans-serif",
+  },
+  togglePasswordButton: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    padding: '8px',
+    color: '#A26964',
+    position: 'absolute',
+    right: '10px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    '&:hover': {
+      color: '#7a4f4a',
+    },
+    '&:focus': {
+      outline: 'none',
+      boxShadow: '0 0 0 2px rgba(162, 105, 100, 0.3)',
+    }
   },
   button: {
     backgroundColor: '#A26964',
@@ -418,4 +452,5 @@ const styles = {
   },
 };
 
+export { authFetch };
 export default Login;

@@ -7,7 +7,7 @@ import HowItWorks from "./HowItWorks";
 const LandingPage = () => {
   return (
     <div style={styles.container}>
-      <NavBar />
+      <NavBar sLoggedIn={false} />
 
       <HeroSection />
 
