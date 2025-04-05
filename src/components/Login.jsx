@@ -1,162 +1,103 @@
 import { useState } from 'react';
-import { FiLock, FiUser, FiShoppingBag, FiHeart, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
+import { FiLock, FiUser, FiShoppingBag, FiHeart, FiCheckCircle, FiAlertCircle, FiEye, FiEyeOff } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { jwtDecode } from 'jwt-decode';
-import { useNavigate } from 'react-router-dom';
+
+const API_BASE = 'https://localhost:44367/api/Auth';
 
 const Login = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [isSuccess, setIsSuccess] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
-  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
   const validateForm = () => {
     const newErrors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email es requerido';
-    } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = 'Email inválido';
-    }
-
-    if (!formData.password.trim()) {
-      newErrors.password = 'Contraseña es requerida';
-    }
-
+    if (!formData.email.trim()) newErrors.email = 'Email es requerido';
+    else if (!emailRegex.test(formData.email)) newErrors.email = 'Email inválido';
+    if (!formData.password.trim()) newErrors.password = 'Contraseña es requerida';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitError('');
-    setErrors({});
-
-    const requiredFields = ['email', 'password'];
-    const emptyFields = requiredFields.filter(field => !formData[field].trim());
-    if (emptyFields.length > 0) {
-      setSubmitError('Por favor completa todos los campos');
-      const newErrors = {};
-      emptyFields.forEach(field => {
-        newErrors[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} es requerido`;
-      });
-      setErrors(newErrors);
-      return;
-    }
-
-    if (validateForm()) {
-      try {
-        const response = await fetch('https://localhost:44367/api/Auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(formData)
-        });
-
-        if (!response.ok) {
-          const errorData = await response.text();
-          setSubmitError('Credenciales no válidas');
-          setErrors({ email: errorData });
-          return;
-        }
-
-        const data = await response.json();
-        // Se espera que la respuesta incluya { accessToken: '...', refreshToken: '...' }
-        const { accessToken, refreshToken } = data;
-        sessionStorage.setItem('accessToken', accessToken);
-        sessionStorage.setItem('refreshToken', refreshToken);
-
-        // Decodifica el token para obtener el id y el rol del usuario
-        const decoded = jwtDecode(accessToken);
-        const userId = decoded.sub; // 'sub' es el id del usuario
-        const userRole = decoded["role"];
-
-        setIsSuccess(true);
-        setTimeout(() => setIsSuccess(false), 3000);
-
-        // Redirige según el rol
-        if (userRole === "Vendedor") {
-          navigate('/seller');
-        } else if (userRole === "Cliente") {
-          navigate('/product');
-        } else {
-          navigate('/');
-        }
-      } catch (error) {
-        console.error("Error en la autenticación:", error);
-        setSubmitError('Ocurrió un error al iniciar sesión');
-      }
-    }
+  const handleChange = e => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (errors[e.target.name]) setErrors(prev => ({ ...prev, [e.target.name]: '' }));
   };
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-    if (errors[e.target.name]) {
-      setErrors(prev => ({ ...prev, [e.target.name]: '' }));
-    }
-  };
-
-  // Función para refrescar token usando fetch y sessionStorage
-  const handleRefreshToken = async () => {
+  const redirectByRole = (token) => {
     try {
-      const refreshToken = sessionStorage.getItem('refreshToken');
-      const response = await fetch('https://localhost:44367/api/Auth/refresh-token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ refreshToken })
-      });
-      if (!response.ok) {
-        throw new Error('Error al refrescar token');
+      const { sub: userId, role } = jwtDecode(token);
+      // Guardamos también userId y role por separado si quieres
+      sessionStorage.setItem('userId', userId);
+      sessionStorage.setItem('role', role);
+
+      switch (role) {
+        case 'Seller':
+          window.location.href = '/provider';
+          break;
+        case 'Customer':
+          window.location.href = '/customer';
+          break;
+        case 'Admin':
+          window.location.href = '/admin';
+          break;
+        default:
+          window.location.href = '/home';
       }
-      const data = await response.json();
-      const { accessToken, refreshToken: newRefreshToken } = data;
+    } catch {
+      window.location.href = '/home';
+    }
+  };
+
+  const handleSubmit = async e => {
+    e.preventDefault();
+    setSubmitError(''); setErrors({});
+
+    if (!validateForm()) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || 'Credenciales inválidas');
+      }
+
+      const { accessToken, refreshToken } = await res.json();
+      // Guardamos tokens
       sessionStorage.setItem('accessToken', accessToken);
-      sessionStorage.setItem('refreshToken', newRefreshToken);
+      sessionStorage.setItem('refreshToken', refreshToken);
+
+      setIsSuccess(true);
+      setTimeout(() => redirectByRole(accessToken), 1000);
     } catch (error) {
-      console.error("Error al refrescar token:", error);
-      navigate('/login');
+      setIsSuccess(false);
+      setSubmitError(error.message || 'Error de conexión');
     }
   };
 
   return (
     <div style={styles.container}>
-      <div style={styles.backgroundCircle1}></div>
-      <div style={styles.backgroundCircle2}></div>
-      <div style={styles.backgroundCircle3}></div>
+      <div style={styles.backgroundCircle1} />
+      <div style={styles.backgroundCircle2} />
+      <div style={styles.backgroundCircle3} />
 
-      <motion.div 
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        style={styles.loginCard}
-      >
+      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={styles.loginCard}>
         {isSuccess && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={styles.successMessage}
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={styles.successMessage}>
             <FiCheckCircle style={styles.successIcon} />
-            ¡Sesión iniciada exitosamente!
+            ¡Sesión iniciada!
           </motion.div>
         )}
-
         {submitError && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={styles.errorMessage}
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={styles.errorMessage}>
             <FiAlertCircle style={styles.errorIcon} />
             {submitError}
           </motion.div>
@@ -165,7 +106,7 @@ const Login = () => {
         <div style={styles.header}>
           <div style={styles.logo}>
             <FiShoppingBag size={48} color="#A26964" />
-            <div style={styles.logoHighlight}></div>
+            <div style={styles.logoHighlight} />
           </div>
           <h1 style={styles.title}>
             <span style={styles.titleMain}>Re</span>
@@ -178,8 +119,8 @@ const Login = () => {
             <FiUser style={styles.inputIcon} />
             <input
               type="email"
-              placeholder="Email"
               name="email"
+              placeholder="Email"
               value={formData.email}
               onChange={handleChange}
               style={styles.input}
@@ -190,32 +131,31 @@ const Login = () => {
           <motion.div whileHover={{ scale: 1.02 }} style={styles.inputContainer}>
             <FiLock style={styles.inputIcon} />
             <input
-              type="password"
-              placeholder="Contraseña"
+              type={showPassword ? 'text' : 'password'}
               name="password"
+              placeholder="Contraseña"
               value={formData.password}
               onChange={handleChange}
               style={styles.input}
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(v => !v)}
+              style={styles.togglePasswordButton}
+              aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            >
+              {showPassword ? <FiEyeOff /> : <FiEye />}
+            </button>
             {errors.password && <span style={styles.errorText}>{errors.password}</span>}
           </motion.div>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            style={styles.button}
-            type="submit"
-          >
-            <FiHeart style={{ marginRight: '8px' }} />
+          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} style={styles.button} type="submit">
+            <FiHeart style={{ marginRight: 8 }} />
             Iniciar sesión
           </motion.button>
         </form>
 
-        <motion.div 
-          style={styles.footer}
-          initial={{ y: 20 }}
-          animate={{ y: 0 }}
-        >
+        <motion.div style={styles.footer} initial={{ y: 20 }} animate={{ y: 0 }}>
           <a href="/forgot-password" style={styles.link}>¿Olvidaste tu contraseña?</a>
           <span style={styles.dot}>•</span>
           <a href="/register" style={styles.link}>¿No tienes una cuenta? ¡Crea una!</a>
@@ -233,8 +173,8 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     fontFamily: "'Poppins', sans-serif",
-    position: 'relative',
-    overflow: 'hidden',
+    position: 'relative',  
+    overflow: 'hidden',     
   },
   loginCard: {
     backgroundColor: '#F8F5F2',
@@ -295,8 +235,8 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     boxShadow: '0 5px 15px rgba(215, 164, 154, 0.1)',
-    position: 'relative',
-    marginBottom: '1.5rem'
+    position: 'relative', 
+    marginBottom: '1.5rem' 
   },
   inputIcon: {
     color: '#A26964',
@@ -310,6 +250,24 @@ const styles = {
     flex: 1,
     backgroundColor: 'transparent',
     fontFamily: "'Poppins', sans-serif",
+  },
+  togglePasswordButton: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    padding: '8px',
+    color: '#A26964',
+    position: 'absolute',
+    right: '10px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    '&:hover': {
+      color: '#7a4f4a',
+    },
+    '&:focus': {
+      outline: 'none',
+      boxShadow: '0 0 0 2px rgba(162, 105, 100, 0.3)',
+    }
   },
   button: {
     backgroundColor: '#A26964',

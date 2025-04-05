@@ -5,10 +5,16 @@ const Chat = () => {
   const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const [newMsg, setNewMsg] = useState('');
-  const userId = 1;
+
+  // Recuperar el userId desde sessionStorage sin valor por defecto
+  const storedUserId = sessionStorage.getItem('userId');
+  const userId = storedUserId ? parseInt(storedUserId, 10) : null;
+
   const baseUrl = 'https://localhost:44367/api/Chat';
 
   useEffect(() => {
+    if (!userId) return; // Si no hay userId, no se hace la petición
+
     fetch(`${baseUrl}/${userId}`)
       .then(response => {
         if (!response.ok) throw new Error('Error en la solicitud');
@@ -19,7 +25,7 @@ const Chat = () => {
   }, [userId]);
 
   const handleSend = () => {
-    if (!newMsg.trim() || !selectedChat) return;
+    if (!newMsg.trim() || !selectedChat || !userId) return;
 
     const messageDto = {
       chatId: selectedChat.chatId,
@@ -52,9 +58,7 @@ const Chat = () => {
       .catch(error => console.error('Error al enviar el mensaje:', error));
   };
 
-  const handleGenerateOrder = () => {
-    alert(`Orden generada para ${selectedChat.buyerName || 'Cliente'}`);
-  };
+
 
   return (
     <div className="min-h-screen bg-[#FAEDE4]">
