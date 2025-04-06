@@ -1,4 +1,4 @@
-import NavBar from "./NavBar";
+import GuestNavBar from "./GuestNavBar";
 import HeroSection from "./HeroSection";
 import Categories from "./Categories";
 import Footer from "./Footer";
@@ -7,7 +7,7 @@ import HowItWorks from "./HowItWorks";
 const LandingPage = () => {
   return (
     <div style={styles.container}>
-      <NavBar sLoggedIn={false} />
+      <GuestNavBar />
 
       <HeroSection />
 

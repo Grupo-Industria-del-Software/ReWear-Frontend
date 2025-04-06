@@ -123,7 +123,7 @@ const styles = {
     letterSpacing: '-1px'
   },
   titleHighlight: {
-    color: '#C2D2C7',
+    color: '#A2B0CA',
     fontStyle: 'italic'
   },
   stepsContainer: {
