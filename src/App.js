@@ -3,6 +3,9 @@ import Login from "./components/Login";
 import Register from "./components/Register";
 import ForgotPassword from "./components/ForgotPassword";
 import LandingPage from "./components/LandingPage";
+import ClientHome from './components/ClientHome';
+import UserProfile from './components/UserProfile';
+import ProductsGrid from "./components/ProductsGrid";
 
 import AdminLayout from "./components/AdminLayout";
 import AdminDashboard from "./components/AdminDashboard";
@@ -26,7 +29,6 @@ import PaymentMethods from "./components/PaymentMethods";
 import ProductForm from "./components/ProductFrom";
 import ProviderPage from "./components/ProviderPage";
 
-
 function App() {
   console.log("App se está renderizando");
   return (
@@ -37,6 +39,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/products" element={<ProductsGrid />} />
         <Route path="/admin/category" element={<Category />} /> 
         <Route path="/product" element={<ProductForm/>}/> 
         <Route path="/provider" element={<ProviderPage/>}/> 
@@ -64,6 +67,8 @@ function App() {
           <Route path="reports" element={<AdminReports />} />
           <Route path="catalogs" element={<CatalogManager />} />
         </Route>
+        <Route path="/home" element={<ClientHome />} />
+        <Route path='/profile' element={<UserProfile/>}/>
       </Routes>
     </Router>
   );

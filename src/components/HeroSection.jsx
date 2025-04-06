@@ -1,25 +1,51 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FiArrowRight } from "react-icons/fi";
 
 const HeroSection = () => {
-    const [isHovered, setIsHovered] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const isMobile = windowSize.width <= 768;
 
   return (
-    <section style={styles.hero}>
-      <div style={styles.heroOverlay}></div>
-      
+    <section style={{ 
+      ...styles.hero,
+      padding: isMobile ? '6rem 5% 4rem' : '8rem 8% 6rem',
+      minHeight: isMobile ? '60vh' : '45vh'
+    }}>
       <div style={styles.heroContent}>
         <div style={styles.textContainer}>
-          <h1 style={styles.heroTitle}>
-            <span style={styles.titleMain}>
-              Revoluciona
-            </span>
-            <span style={styles.titleAccent}>
-              tu estilo
-            </span>
+          <h1 style={{ 
+            ...styles.heroTitle,
+            fontSize: isMobile ? '3rem' : '5rem'
+          }}>
+            <span style={styles.titleMain}>Revoluciona</span>
+            <span style={{ 
+              ...styles.titleAccent,
+              marginLeft: isMobile ? '0' : '2rem'
+            }}>tu estilo</span>
           </h1>
 
-          <p style={styles.heroText}>
+          <p style={{ 
+            ...styles.heroText,
+            fontSize: isMobile ? '1.2rem' : '1.5rem',
+            margin: isMobile ? '1.5rem auto' : '2rem auto'
+          }}>
             Descubre prendas únicas, alquila tus looks favoritos y da nueva vida a tu armario.
           </p>
         </div>
@@ -29,10 +55,11 @@ const HeroSection = () => {
             href="/login"
             style={{ 
               ...styles.ctaButton,
+              padding: isMobile ? '1rem 2rem' : '1.5rem 3rem',
+              fontSize: isMobile ? '1rem' : '1.2rem',
               backgroundColor: isHovered ? '#E1DAD3' : '#A26964',
               color: isHovered ? '#A26964' : '#E1DAD3',
               borderColor: isHovered ? '#A26964' : '#C2D2C7',
-              scale: 1.05
             }}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
@@ -51,8 +78,6 @@ const HeroSection = () => {
 
 const styles = {
   hero: {
-    padding: '8rem 8% 6rem',
-    minHeight: '45vh',
     position: 'relative',
     display: 'flex',
     alignItems: 'center',
@@ -67,7 +92,7 @@ const styles = {
     `,
     backgroundSize: 'cover',
     backgroundPosition: 'center',
-    textAlign: 'center', 
+    textAlign: 'center',
   },
   heroContent: {
     position: 'relative',
@@ -80,13 +105,10 @@ const styles = {
     marginBottom: '4rem',
   },
   heroTitle: {
-    fontSize: '5rem',
     fontWeight: 900,
-    marginBottom: '1.5rem',
     lineHeight: 1,
     fontFamily: "'Playfair Display', serif",
     textShadow: '2px 2px 4px rgba(0, 0, 0, 0.1)',
-    textAlign: 'center', 
   },
   titleMain: {
     color: '#A26964',
@@ -97,48 +119,28 @@ const styles = {
     color: '#A2B0CA',
     fontStyle: 'italic',
     display: 'block',
-    marginLeft: '0', 
+    transition: 'margin 0.3s ease',
   },
   heroText: {
     color: '#A26964',
-    fontSize: '1.5rem',
     maxWidth: '600px',
-    margin: '2rem auto',
     lineHeight: 1.6,
     fontWeight: 500,
     fontFamily: "'Poppins', sans-serif",
   },
   ctaButton: {
-    backgroundColor: '#A26964',
-    color: '#E1DAD3',
-    padding: '1.5rem 3rem',
     borderRadius: '50px',
-    border: '2px solid #E1DAD3',
-    fontSize: '1.2rem',
+    border: '2px solid',
     display: 'inline-flex',
     alignItems: 'center',
     cursor: 'pointer',
     fontWeight: 600,
     textDecoration: 'none',
     transition: 'all 0.3s ease',
-    boxShadow: 'none',
   },
   arrowIcon: {
     marginLeft: '15px',
-    transition: 'color 0.3s ease', 
-  },
-  '@media (max-width: 768px)': {
-    heroTitle: {
-      fontSize: '3.5rem',
-    },
-    heroText: {
-      fontSize: '1.2rem',
-      padding: '0 1rem',
-    },
-    ctaButton: {
-      padding: '1rem 2rem',
-      fontSize: '1rem',
-    },
+    transition: 'color 0.3s ease',
   },
 };
 
