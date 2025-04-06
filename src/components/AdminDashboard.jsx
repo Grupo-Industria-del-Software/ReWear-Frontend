@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 
 const AdminDashboard = () => {
+  const [hoveredCard, setHoveredCard] = useState(null);
+
   return (
     <div style={dashboardStyle}>
       <div style={mainContainerStyle}>
@@ -16,39 +18,34 @@ const AdminDashboard = () => {
             
             <div style={dividerStyle}></div>
             
-            <p style={descriptionStyle}>
-              Gestiona toda la plataforma desde este panel
-            </p>
-          </div>
+            <p style={descriptionStyle}>Gestiona toda la plataforma desde este panel</p></div>
 
           <div style={cardsContainerStyle}>
-            <div style={cardStyle}>
-              <div style={cardIconStyle}>👥</div>
-              <h3 style={cardTitleStyle}>Usuarios</h3>
-              <p style={cardTextStyle}>Administra perfiles, roles y permisos</p>
-              <div style={cardHoverEffect}></div>
-            </div>
-            
-            <div style={cardStyle}>
-              <div style={cardIconStyle}>📊</div>
-              <h3 style={cardTitleStyle}>Reportes</h3>
-              <p style={cardTextStyle}>Genera análisis y estadísticas</p>
-              <div style={cardHoverEffect}></div>
-            </div>
-            
-            <div style={cardStyle}>
-              <div style={cardIconStyle}>🔄</div>
-              <h3 style={cardTitleStyle}>Suscripciones</h3>
-              <p style={cardTextStyle}>Gestiona membresías y renovaciones</p>
-              <div style={cardHoverEffect}></div>
-            </div>
-            
-            <div style={cardStyle}>
-              <div style={cardIconStyle}>📋</div>
-              <h3 style={cardTitleStyle}>Catálogos</h3>
-              <p style={cardTextStyle}>Administra Departamentos, Categorias, Condiciones, etc...</p>
-              <div style={cardHoverEffect}></div>
-            </div>
+            {[
+              { icon: "👥", title: "Usuarios", text: "Administra perfiles, roles y permisos" },
+              { icon: "📊", title: "Reportes", text: "Genera análisis y estadísticas" },
+              { icon: "🔄", title: "Suscripciones", text: "Gestiona membresías y renovaciones" },
+              { icon: "📋", title: "Catálogos", text: "Administra Departamentos, Categorías, etc." }
+            ].map((card, index) => (
+              <div 
+                key={index}
+                style={{
+                  ...cardStyle,
+                  transform: hoveredCard === index ? "translateY(-5px)" : "none",
+                  boxShadow: hoveredCard === index ? "0 10px 25px rgba(162, 105, 100, 0.1)" : "0 5px 15px rgba(0, 0, 0, 0.05)"
+                }}
+                onMouseEnter={() => setHoveredCard(index)}
+                onMouseLeave={() => setHoveredCard(null)}
+              >
+                <div style={cardIconStyle}>{card.icon}</div>
+                <h3 style={cardTitleStyle}>{card.title}</h3>
+                <p style={cardTextStyle}>{card.text}</p>
+                <div style={{
+                  ...cardHoverEffect,
+                  opacity: hoveredCard === index ? "1" : "0"
+                }}></div>
+              </div>
+            ))}
           </div>
         </div>
         
@@ -65,126 +62,129 @@ const AdminDashboard = () => {
   );
 };
 
-// Estilos 
+// Estilos
 const dashboardStyle = {
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
   minHeight: "calc(100vh - 80px)",
   background: "linear-gradient(135deg, #f5f7fa 0%, #c2d2c7 100%)",
-  padding: "40px",
+  padding: "20px",
+  overflow: "hidden"
 };
 
 const mainContainerStyle = {
   display: "flex",
-  maxWidth: "1200px",
+  maxWidth: "1000px",
   width: "100%",
-  borderRadius: "20px",
+  borderRadius: "16px",
   overflow: "hidden",
-  boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.15)",
+  boxShadow: "0 15px 30px -10px rgba(0, 0, 0, 0.1)",
   background: "#ffffff",
-  transition: "all 0.3s ease",
-  ":hover": {
-    boxShadow: "0 30px 60px -10px rgba(0, 0, 0, 0.2)"
-  }
+  height: "auto",
+  maxHeight: "90vh"
 };
 
 const contentContainerStyle = {
   flex: "1",
-  padding: "30px",
+  padding: "20px",
   display: "flex",
   flexDirection: "column",
-  justifyContent: "center"
+  justifyContent: "center",
+  overflowY: "auto"
 };
 
 const headerStyle = {
-  marginBottom: "50px",
+  marginBottom: "30px",
   textAlign: "left"
 };
 
 const titleStyle = {
   margin: "0",
-  lineHeight: "1.2",
-  fontWeight: "700"
+  lineHeight: "1.2"
 };
 
 const welcomeTextStyle = {
-  fontSize: "24px",
+  fontSize: "18px",
   color: "#A26964",
   fontWeight: "400",
   letterSpacing: "1px"
 };
 
 const brandTextStyle = {
-  fontSize: "42px",
+  fontSize: "32px",
   background: "linear-gradient(90deg, #A26964 0%, #C2D2C7 100%)",
   WebkitBackgroundClip: "text",
   WebkitTextFillColor: "transparent",
-  fontWeight: "800",
+  fontWeight: "700",
   display: "inline-block"
 };
 
 const subBrandTextStyle = {
-  fontSize: "52px",
+  fontSize: "40px",
   color: "#A26964",
-  fontWeight: "800",
+  fontWeight: "700",
   fontStyle: "italic"
 };
 
 const dividerStyle = {
-  height: "4px",
-  width: "100px",
+  height: "3px",
+  width: "80px",
   background: "linear-gradient(90deg, #A26964 0%, #C2D2C7 100%)",
-  margin: "20px 0",
+  margin: "15px 0",
   borderRadius: "2px"
 };
 
 const descriptionStyle = {
-  fontSize: "18px",
+  fontSize: "16px",
   color: "#6B7280",
-  maxWidth: "500px",
-  lineHeight: "1.6"
+  maxWidth: "400px",
+  lineHeight: "1.5",
+  marginBottom: "-30px",
+  marginTop: "0px" 
 };
 
 const cardsContainerStyle = {
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-  gap: "20px",
+  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+  gap: "15px",
+  marginTop: "20px"
 };
 
 const cardStyle = {
   background: "#FFFFFF",
-  borderRadius: "12px",
-  padding: "25px",
+  borderRadius: "10px",
+  padding: "15px 20px",
   boxShadow: "0 5px 15px rgba(0, 0, 0, 0.05)",
   transition: "all 0.3s ease",
   position: "relative",
   overflow: "hidden",
   border: "1px solid rgba(162, 105, 100, 0.1)",
-  ":hover": {
-    transform: "translateY(-5px)",
-    boxShadow: "0 10px 25px rgba(162, 105, 100, 0.1)"
-  }
+  cursor: "pointer",
+  minHeight: "160px"
 };
 
 const cardIconStyle = {
-  fontSize: "32px",
-  marginBottom: "15px",
-  color: "#A26964"
+  fontSize: "28px",
+  marginBottom: "12px",
+  color: "#A26964",
+  transition: "all 0.3s ease"
 };
 
 const cardTitleStyle = {
-  margin: "0 0 10px 0",
+  margin: "0 0 8px 0",
   color: "#111827",
-  fontSize: "18px",
+  fontSize: "16px",
   fontWeight: "600"
 };
 
 const cardTextStyle = {
   margin: "0",
-  color: "#6B7280",
-  fontSize: "14px",
-  lineHeight: "1.5"
+  color: " #6B7280",
+  fontSize: "13px",
+  lineHeight: "1.2",
+  marginTop: "8px",
+  paddingBottom: "0"
 };
 
 const cardHoverEffect = {
@@ -194,21 +194,14 @@ const cardHoverEffect = {
   width: "100%",
   height: "100%",
   background: "linear-gradient(135deg, rgba(162, 105, 100, 0.1) 0%, rgba(194, 210, 199, 0.1) 100%)",
-  opacity: "0",
-  transition: "opacity 0.3s ease",
-  ":hover": {
-    opacity: "1"
-  }
+  transition: "opacity 0.3s ease"
 };
 
 const imageContainerStyle = {
   flex: "1",
   position: "relative",
-  minHeight: "500px",
-  display: "flex",
-  "@media (max-width: 900px)": {
-    display: "none"
-  }
+  minHeight: "400px",
+  display: "flex"
 };
 
 const imageStyle = {
