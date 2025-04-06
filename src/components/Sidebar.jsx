@@ -93,24 +93,6 @@ const Sidebar = () => {
                   Solicitudes de registro
                 </Link>
               </li>
-              <li style={subMenuItemStyle}>
-                <Link
-                  to="/admin/role-management"
-                  style={{
-                    ...linkStyle,
-                    fontWeight: location.pathname === "/admin/role-management" ? "bold" : "normal",
-                    padding: "5px", 
-                    borderRadius: "4px",
-                    display: "block",
-                    width: "100%",
-                    marginLeft: "10px",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-                >
-                  Asignación y gestión de roles
-                </Link>
-              </li>
             </ul>
           )}
         </li>
