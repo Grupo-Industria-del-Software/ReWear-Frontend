@@ -8,7 +8,7 @@ ARG REACT_APP_API_ENV
 ENV REACT_APP_API_ENV=$REACT_APP_API_ENV
 
 COPY . .
-RUN npm run build  # Las variables se compilan en los archivos estáticos
+RUN npm run build
 
 FROM nginx:alpine
 COPY --from=builder /app/build /usr/share/nginx/html

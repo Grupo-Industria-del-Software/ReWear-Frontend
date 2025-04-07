@@ -26,32 +26,21 @@ jobs:
           Write-Host "Pulling image: $imageName"
           docker pull $imageName
 
-      - name: Create .env file from ENV_FILE variable
-        shell: powershell
-        run: |
-          $envContent = @"
-          ${{ vars.ENV_FILE }}
-          "@
-          Set-Content -Path .env -Value $envContent
-          Write-Host "Contenido del .env creado:"
-          Get-Content .env
-
       - name: Stop and remove existing container
         shell: powershell
         run: |
           docker ps -a -q -f name=react_app | ForEach-Object { docker rm -f $_ }
           Write-Host "Old container removed (if any)."
 
-      - name: Run React container with .env
+      - name: Run React container
         shell: powershell
         run: |
           $repo = "${{ github.repository }}".ToLower()
-          $imageName = "ghcr.io/$repo/ui:latest" 
-          docker ps -a -q -f name=react_app | ForEach-Object { docker rm -f $_ }
-          Write-Host "Iniciando contenedor React desde: $imageName"
+          $imageName = "ghcr.io/$repo/ui:latest"
+          Write-Host "Starting container from: $imageName"
           docker run -d `
             -p 3000:80 `
-            --env-file .env `
-            --name react_app ` 
+            --name react_app `
             --restart unless-stopped `
             $imageName
+          Write-Host "Container started successfully!"
