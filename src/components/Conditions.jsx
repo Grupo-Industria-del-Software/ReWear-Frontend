@@ -4,17 +4,19 @@ import CatalogManager from "./CatalogManager";
 const Conditions = () => {
   const fields = [
     {
-      name: "name", 
+      name: "label", 
       label: "Nombre de la Condición", 
       required: true, 
-      validate: (value, data) => {
-        if (!value) {
+      validate: (value, data, currentItem) => {
+        if (!value || value.trim() === "") {
           return "El nombre de la condición es obligatorio.";
         }
-        if (data.some((item) => item.name && item.name.toLowerCase() === value.toLowerCase())) {
-          return "La condición ya existe. Por favor, ingrese un nombre único.";
-        }
-        return null; 
+        const exists = data.some(item => 
+          item.label &&  
+          item.label.toLowerCase() === value.toLowerCase() &&
+          (!currentItem.id || item.id !== currentItem.id)
+        );
+        return exists ? "Esta condición ya existe. Ingrese un nombre único." : null;
       },
     },
   ];
@@ -23,7 +25,7 @@ const Conditions = () => {
     <CatalogManager
       catalogName="Condiciones" 
       fields={fields} 
-      endpoint="/api/condition" 
+      endpoint="/api/condition"  
     />
   );
 };

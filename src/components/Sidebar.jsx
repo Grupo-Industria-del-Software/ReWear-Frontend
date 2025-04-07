@@ -29,7 +29,7 @@ const Sidebar = () => {
 
   return (
     <div style={sidebarStyle}>
-      {/* Logo de ReWear */}
+      {/* Logo */}
       <Link to="/admin" style={{ textDecoration: "none" }}>
         <div style={logoStyle}>ReWear</div>
       </Link>
@@ -91,24 +91,6 @@ const Sidebar = () => {
                   onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
                 >
                   Solicitudes de registro
-                </Link>
-              </li>
-              <li style={subMenuItemStyle}>
-                <Link
-                  to="/admin/role-management"
-                  style={{
-                    ...linkStyle,
-                    fontWeight: location.pathname === "/admin/role-management" ? "bold" : "normal",
-                    padding: "5px", 
-                    borderRadius: "4px",
-                    display: "block",
-                    width: "100%",
-                    marginLeft: "10px",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-                >
-                  Asignación y gestión de roles
                 </Link>
               </li>
             </ul>
@@ -285,44 +267,6 @@ const Sidebar = () => {
                   Estados de Producto
                 </Link>
               </li>    
-
-              <li style={subMenuItemStyle}>
-                <Link
-                  to="/admin/ordertypes"
-                  style={{
-                    ...linkStyle,
-                    fontWeight: location.pathname === "/admin/ordertypes" ? "bold" : "normal",
-                    padding: "5px", 
-                    borderRadius: "4px",
-                    display: "block",
-                    width: "100%",
-                    marginLeft: "10px",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-                >
-                  Tipos de Orden
-                </Link>
-              </li>
- 
-              <li style={subMenuItemStyle}>
-                <Link
-                  to="/admin/paymentstatus"
-                  style={{
-                    ...linkStyle,
-                    fontWeight: location.pathname === "/admin/paymentstatus" ? "bold" : "normal",
-                    padding: "5px", 
-                    borderRadius: "4px",
-                    display: "block",
-                    width: "100%",
-                    marginLeft: "10px",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-                >
-                  Estados de Pago
-                </Link>
-              </li>
  
               <li style={subMenuItemStyle}>
                 <Link
@@ -343,24 +287,6 @@ const Sidebar = () => {
                 </Link>
               </li>
  
-              <li style={subMenuItemStyle}>
-                <Link
-                  to="/admin/paymentmethods"
-                  style={{
-                    ...linkStyle,
-                    fontWeight: location.pathname === "/admin/paymentmethods" ? "bold" : "normal",
-                    padding: "5px", 
-                    borderRadius: "4px",
-                    display: "block",
-                    width: "100%",
-                    marginLeft: "10px",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-                >
-                  Metodos de Pago
-                </Link>
-              </li>
             </ul>
           )}
         </li>
@@ -394,6 +320,10 @@ const sidebarStyle = {
   boxSizing: "border-box",
   display: "flex",
   flexDirection: "column",
+  position: "fixed", 
+  left: 0, 
+  top: 0, 
+  overflowY: "auto", 
 };
 
 const logoStyle = {
