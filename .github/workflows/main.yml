@@ -24,10 +24,10 @@ jobs:
 
       - name: Build and tag Docker image
         run: |
+          echo "REACT_APP_API_URL value: ${{ vars.REACT_APP_API_URL }}"
           REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           IMAGE_NAME=ghcr.io/${REPO_LOWER}/ui
-          echo "Building $IMAGE_NAME"
-          docker build --no-cache --build-arg REACT_APP_API_URL=${{ vars.REACT_APP_API_URL }} -t $IMAGE_NAME -f Dockerfile .
+          docker build --no-cache --build-arg REACT_APP_API_URL="${{ vars.REACT_APP_API_URL }}" -t $IMAGE_NAME -f Dockerfile .
 
       - name: Push Docker image to GitHub Container Registry
         run: |
