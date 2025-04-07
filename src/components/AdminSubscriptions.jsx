@@ -7,61 +7,104 @@ const AdminSubscriptions = () => {
         <h1 style={titleStyle}>Gestión de Suscripciones</h1>
         <p style={subtitleStyle}>Administra las membresías y suscripciones de los usuarios</p>
       </div>
-      
+
       <div style={placeholderStyle}>
         <div style={iconStyle}>📊</div>
         <h2 style={placeholderTitleStyle}>Sección en desarrollo</h2>
         <div style={featuresStyle}>
-          <div style={featureCardStyle}>
-            <div style={featureIconStyle}>🔄</div>
-            <h3 style={featureTitleStyle}>Renovaciones</h3>
-            <p style={featureTextStyle}>Gestiona las renovaciones automáticas</p>
-          </div>
-          <div style={featureCardStyle}>
-            <div style={featureIconStyle}>💰</div>
-            <h3 style={featureTitleStyle}>Pagos</h3>
-            <p style={featureTextStyle}>Visualiza historial de pagos</p>
-          </div>
-          <div style={featureCardStyle}>
-            <div style={featureIconStyle}>📈</div>
-            <h3 style={featureTitleStyle}>Estadísticas</h3>
-            <p style={featureTextStyle}>Analiza el crecimiento</p>
-          </div>
+          {features.map((feature, index) => (
+            <div key={index} style={featureCardStyle} className="feature-card">
+              <div className="icon-hover" style={featureIconStyle}>{feature.icon}</div>
+              <h3 style={featureTitleStyle}>{feature.title}</h3>
+              <p style={featureTextStyle}>{feature.description}</p>
+            </div>
+          ))}
         </div>
       </div>
+
+      <style>
+        {`
+          .feature-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+            cursor: pointer;
+          }
+
+          .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+            background-color: #d6e5db; /* un babyGreen más clarito */
+          }
+
+          .icon-hover {
+            display: inline-block;
+            transition: transform 0.3s ease, filter 0.3s ease;
+          }
+
+          .feature-card:hover .icon-hover {
+            transform: scale(1.2) rotate(5deg);
+            filter: brightness(1.3) drop-shadow(0 0 5px rgba(255,255,255,0.6));
+          }
+        `}
+      </style>
     </div>
   );
 };
 
-// Estilos
+const features = [
+  {
+    icon: "🔄",
+    title: "Renovaciones",
+    description: "Gestiona las renovaciones automáticas",
+  },
+  {
+    icon: "💰",
+    title: "Pagos",
+    description: "Visualiza historial de pagos",
+  },
+  {
+    icon: "📈",
+    title: "Estadísticas",
+    description: "Analiza el crecimiento",
+  },
+];
+
+const colors = {
+  ivory: '#E1DAD3',
+  nude: '#E4C9B6',
+  coffee: '#A26964',
+  babyBlue: '#A2B0CA',
+  babyGreen: '#C2D2C7',
+};
+
 const containerStyle = {
   padding: '2rem',
   maxWidth: '1200px',
   margin: '0 auto',
-  fontFamily: "'Poppins', sans-serif",
+  fontFamily: "'Poppins', 'Playfair Display', sans-serif",
 };
 
 const headerStyle = {
   marginBottom: '2rem',
-  borderBottom: '2px solid #e2e8f0',
+  borderBottom: `2px solid ${colors.nude}`,
   paddingBottom: '1rem',
 };
 
 const titleStyle = {
   fontSize: '2rem',
   fontWeight: '700',
-  color: '#2d3748',
+  color: colors.coffee,
   margin: '0',
+  fontFamily: "'Playfair Display', serif",
 };
 
 const subtitleStyle = {
   fontSize: '1rem',
-  color: '#718096',
+  color: colors.nude,
   margin: '0.5rem 0 0 0',
 };
 
 const placeholderStyle = {
-  backgroundColor: '#f7fafc',
+  backgroundColor: colors.ivory,
   borderRadius: '12px',
   padding: '3rem 2rem',
   textAlign: 'center',
@@ -71,21 +114,15 @@ const placeholderStyle = {
 const iconStyle = {
   fontSize: '4rem',
   marginBottom: '1rem',
+  color: colors.babyBlue,
 };
 
 const placeholderTitleStyle = {
   fontSize: '1.5rem',
   fontWeight: '600',
-  color: '#2d3748',
+  color: colors.coffee,
   margin: '0 0 1rem 0',
-};
-
-const placeholderTextStyle = {
-  fontSize: '1rem',
-  color: '#4a5568',
-  maxWidth: '600px',
-  margin: '0 auto 2rem auto',
-  lineHeight: '1.6',
+  fontFamily: "'Playfair Display', serif",
 };
 
 const featuresStyle = {
@@ -96,32 +133,28 @@ const featuresStyle = {
 };
 
 const featureCardStyle = {
-  backgroundColor: 'white',
+  backgroundColor: colors.babyGreen,
   borderRadius: '8px',
   padding: '1.5rem',
-  boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
-  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-  ':hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-  },
 };
 
 const featureIconStyle = {
   fontSize: '2rem',
   marginBottom: '1rem',
+  color: colors.coffee,
 };
 
 const featureTitleStyle = {
   fontSize: '1.1rem',
   fontWeight: '600',
-  color: '#2d3748',
+  color: colors.coffee,
   margin: '0 0 0.5rem 0',
+  fontFamily: "'Playfair Display', serif",
 };
 
 const featureTextStyle = {
   fontSize: '0.9rem',
-  color: '#718096',
+  color: '#2D2D2D',
   margin: '0',
 };
 

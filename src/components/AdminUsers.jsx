@@ -4,6 +4,7 @@ import ReactPaginate from 'react-paginate';
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
+  const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -15,18 +16,30 @@ const AdminUsers = () => {
   const pageCount = Math.ceil(users.length / usersPerPage);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('https://localhost:7039/api/Users', {
+        // Obtener usuarios
+        const usersResponse = await fetch('https://localhost:7039/api/Users', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
         });
         
-        if (!response.ok) throw new Error('Error al obtener usuarios');
+        if (!usersResponse.ok) throw new Error('Error al obtener usuarios');
+        const usersData = await usersResponse.json();
         
-        const data = await response.json();
-        setUsers(data);
+        // Obtener roles
+        const rolesResponse = await fetch('https://localhost:7039/api/UserRoles', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (!rolesResponse.ok) throw new Error('Error al obtener roles');
+        const rolesData = await rolesResponse.json();
+        
+        setUsers(usersData);
+        setRoles(rolesData);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -34,15 +47,28 @@ const AdminUsers = () => {
       }
     };
 
-    fetchUsers();
+    fetchData();
   }, []);
+
+  // Función para obtener el nombre del rol en español
+  const getRoleName = (roleId) => {
+    const role = roles.find(r => r.id === roleId);
+    if (!role) return 'Desconocido';
+    
+    const roleTranslations = {
+      'Customer': 'Cliente',
+      'Seller': 'Vendedor',
+      'Admin': 'Administrador'
+    };
+    
+    return roleTranslations[role.rol] || role.rol;
+  };
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = 
       user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.phoneNumber?.toLowerCase().includes(searchTerm.toLowerCase());
+      user.email?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus = 
       statusFilter === 'all' || 
@@ -51,8 +77,9 @@ const AdminUsers = () => {
 
     const matchesRole = 
       roleFilter === 'all' || 
-      (roleFilter === 'admin' && user.roleId === 1) || 
-      (roleFilter === 'user' && user.roleId !== 1);
+      (roleFilter === 'admin' && user.roleId === 1007) || // Admin
+      (roleFilter === 'seller' && user.roleId === 1006) || // Seller
+      (roleFilter === 'customer' && user.roleId === 1005); // Customer
 
     return matchesSearch && matchesStatus && matchesRole;
   });
@@ -130,7 +157,8 @@ const AdminUsers = () => {
             >
               <option value="all">Todos los roles</option>
               <option value="admin">Administradores</option>
-              <option value="user">Usuarios</option>
+              <option value="seller">Vendedores</option>
+              <option value="customer">Clientes</option>
             </select>
           </div>
         </div>
@@ -144,7 +172,6 @@ const AdminUsers = () => {
               <th style={styles.th}>ID</th>
               <th style={styles.th}>Nombre</th>
               <th style={styles.th}>Email</th>
-              <th style={styles.th}>Teléfono</th>
               <th style={styles.th}>Rol</th>
               <th style={styles.th}>Estado</th>
               <th style={styles.th}>Acciones</th>
@@ -157,8 +184,7 @@ const AdminUsers = () => {
                   <td style={styles.td}>{user.id}</td>
                   <td style={styles.td}>{user.firstName} {user.lastName}</td>
                   <td style={styles.td}>{user.email}</td>
-                  <td style={styles.td}>{user.phoneNumber || 'N/A'}</td>
-                  <td style={styles.td}>{user.roleId === 1 ? 'Admin' : 'Usuario'}</td>
+                  <td style={styles.td}>{getRoleName(user.roleId)}</td>
                   <td style={{ 
                     ...styles.td, 
                     color: user.active ? '#A2B0CA' : '#A26964',
@@ -183,7 +209,7 @@ const AdminUsers = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>
+                <td colSpan="6" style={{ textAlign: 'center', padding: '20px' }}>
                   No se encontraron usuarios
                 </td>
               </tr>
@@ -209,7 +235,6 @@ const AdminUsers = () => {
     </div>
   );
 };
-
 
 const styles = {
   container: {
