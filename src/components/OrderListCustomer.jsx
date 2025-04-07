@@ -11,7 +11,7 @@ const OrderListCustomer = () => {
       try {
         const token = sessionStorage.getItem('accessToken');
         if (!token) throw new Error('No se encontró token de autenticación.');
-        const res = await fetch('https://localhost:44367/api/order/customer', {
+        const res = await fetch(`${process.env.REACT_APP_API_ENV}/api/order/customer`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

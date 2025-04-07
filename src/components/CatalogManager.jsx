@@ -3,7 +3,7 @@ import { FaEdit, FaTrash, FaSpinner } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const backendUrl = "https://localhost:44367";
+const backendUrl = `${process.env.REACT_APP_API_ENV}`;
 
 const CatalogManager = ({ catalogName, fields, endpoint }) => {
   const [data, setData] = useState([]);

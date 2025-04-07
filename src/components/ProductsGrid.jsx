@@ -33,10 +33,10 @@ const ProductsGrid = () => {
     const fetchFilterOptions = async () => {
       try {
         const [categoriesRes, conditionsRes, sizesRes, brandsRes] = await Promise.all([
-          fetch('https://localhost:44367/api/Category').then(res => res.ok ? res.json() : []),
-          fetch('https://localhost:44367/api/Condition').then(res => res.ok ? res.json() : []),
-          fetch('https://localhost:44367/api/Size').then(res => res.ok ? res.json() : []),
-          fetch('https://localhost:44367/api/Brand').then(res => res.ok ? res.json() : [])
+          fetch(`${process.env.REACT_APP_API_ENV}/api/Category`).then(res => res.ok ? res.json() : []),
+          fetch(`${process.env.REACT_APP_API_ENV}/api/Condition`).then(res => res.ok ? res.json() : []),
+          fetch(`${process.env.REACT_APP_API_ENV}/api/Size`).then(res => res.ok ? res.json() : []),
+          fetch(`${process.env.REACT_APP_API_ENV}/api/Brand`).then(res => res.ok ? res.json() : [])
         ]);
 
         setFilterOptions({
@@ -69,7 +69,7 @@ const ProductsGrid = () => {
         }
      });
 
-      const apiUrl = `https://localhost:44367/api/Product?${params.toString()}`;
+      const apiUrl = `${process.env.REACT_APP_API_ENV}/api/Product?${params.toString()}`;
       console.log("Fetching products from:", apiUrl); 
       const res = await fetch(apiUrl);
 

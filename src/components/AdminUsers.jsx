@@ -19,7 +19,7 @@ const AdminUsers = () => {
     const fetchData = async () => {
       try {
         // Obtener usuarios
-        const usersResponse = await fetch('https://localhost:44367/api/Users', {
+        const usersResponse = await fetch(`${process.env.REACT_APP_API_ENV}/api/Users`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
@@ -28,7 +28,7 @@ const AdminUsers = () => {
         const usersData = await usersResponse.json();
 
         // Obtener roles
-        const rolesResponse = await fetch('https://localhost:44367/api/UserRoles', {
+        const rolesResponse = await fetch(`${process.env.REACT_APP_API_ENV}/api/UserRoles`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
@@ -93,7 +93,7 @@ const AdminUsers = () => {
 
   const toggleUserStatus = async (userId, currentStatus) => {
     try {
-      const response = await fetch(`https://localhost:44367/api/Users/${userId}/status`, {
+      const response = await fetch(`${process.env.REACT_APP_API_ENV}/api/Users/${userId}/status`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
