@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaUserEdit, FaUserSlash, FaUserCheck, FaSearch, FaFilter } from 'react-icons/fa';
+import { FaUserSlash, FaUserCheck, FaSearch, FaFilter } from 'react-icons/fa';
 import ReactPaginate from 'react-paginate';
 
 const AdminUsers = () => {
@@ -10,7 +10,7 @@ const AdminUsers = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [roleFilter, setRoleFilter] = useState('all');
-  
+
   const [currentPage, setCurrentPage] = useState(0);
   const usersPerPage = 10;
   const pageCount = Math.ceil(users.length / usersPerPage);
@@ -19,25 +19,23 @@ const AdminUsers = () => {
     const fetchData = async () => {
       try {
         // Obtener usuarios
-        const usersResponse = await fetch('https://localhost:7039/api/Users', {
+        const usersResponse = await fetch('https://localhost:44367/api/Users', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
         });
-        
         if (!usersResponse.ok) throw new Error('Error al obtener usuarios');
         const usersData = await usersResponse.json();
-        
+
         // Obtener roles
-        const rolesResponse = await fetch('https://localhost:7039/api/UserRoles', {
+        const rolesResponse = await fetch('https://localhost:44367/api/UserRoles', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
         });
-        
         if (!rolesResponse.ok) throw new Error('Error al obtener roles');
         const rolesData = await rolesResponse.json();
-        
+
         setUsers(usersData);
         setRoles(rolesData);
       } catch (err) {
@@ -54,14 +52,20 @@ const AdminUsers = () => {
   const getRoleName = (roleId) => {
     const role = roles.find(r => r.id === roleId);
     if (!role) return 'Desconocido';
-    
+
     const roleTranslations = {
       'Customer': 'Cliente',
       'Seller': 'Vendedor',
       'Admin': 'Administrador'
     };
-    
+
     return roleTranslations[role.rol] || role.rol;
+  };
+
+  // Función para obtener el rol en formato original (en inglés) del usuario
+  const getUserRole = (user) => {
+    const userRole = roles.find(r => r.id === user.roleId);
+    return userRole ? userRole.rol.toLowerCase() : '';
   };
 
   const filteredUsers = users.filter(user => {
@@ -77,9 +81,7 @@ const AdminUsers = () => {
 
     const matchesRole = 
       roleFilter === 'all' || 
-      (roleFilter === 'admin' && user.roleId === 1007) || // Admin
-      (roleFilter === 'seller' && user.roleId === 1006) || // Seller
-      (roleFilter === 'customer' && user.roleId === 1005); // Customer
+      getUserRole(user) === roleFilter; 
 
     return matchesSearch && matchesStatus && matchesRole;
   });
@@ -91,7 +93,7 @@ const AdminUsers = () => {
 
   const toggleUserStatus = async (userId, currentStatus) => {
     try {
-      const response = await fetch(`https://localhost:7039/api/Users/${userId}/status`, {
+      const response = await fetch(`https://localhost:44367/api/Users/${userId}/status`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,

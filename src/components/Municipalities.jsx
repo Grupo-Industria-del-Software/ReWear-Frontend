@@ -1,7 +1,7 @@
 import React from "react";
 import CatalogManager from "./CatalogManager";
 
-const backendUrl = "https://localhost:7039";
+const backendUrl = "https://localhost:44367";
 
 const Municipalities = () => {
   const validateMunicipalityName = (value, data, currentItem) => {

@@ -37,7 +37,6 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/products" element={<ProductsGrid />} />
         <Route path="/product/:id" element={<ProductDetail />} />
-        <Route path="/admin/category" element={<Category />} /> 
         <Route path="/product" element={<ProductForm/>}/> 
         <Route path="/provider" element={<ProviderPage/>}/> 
 
@@ -63,6 +62,7 @@ function App() {
         </Route>
         <Route path="/home" element={<ClientHome />} />
         <Route path="/chats" element={<Chat />} />
+        <Route path="/chats/:id" element={<Chat />} />
         <Route path='/profile' element={<UserProfile/>}/>
       </Routes>
     </Router>
