@@ -7,7 +7,7 @@ const Chat = () => {
   const [selectedChat, setSelectedChat] = useState(null);
   const [newMsg, setNewMsg] = useState('');
   const userId = sessionStorage.getItem('userId');
-  const baseUrl = 'https://localhost:44367/api/Chat';
+  const baseUrl = `${process.env.REACT_APP_API_ENV}/api/Chat`;
 
   useEffect(() => {
     fetch(`${baseUrl}/${userId}`)

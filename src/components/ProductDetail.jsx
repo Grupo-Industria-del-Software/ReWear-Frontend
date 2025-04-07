@@ -28,7 +28,7 @@ const ProductDetail = () => {
       setLoading(true);
       try {
         if (!id) return;
-        const res = await fetch(`https://localhost:44367/api/Product/${id}`);
+        const res = await fetch(`${process.env.REACT_APP_API_ENV}/api/Product/${id}`);
         if (!res.ok) throw new Error();
         const data = await res.json();
         setProduct(data);
@@ -45,7 +45,7 @@ const ProductDetail = () => {
     if (!product || !product.user || !product.user.id) return;
     if (product.user.id === currentUserId) return;
     try {
-      const res = await fetch(`https://localhost:44367/api/Chat/${currentUserId}`);
+      const res = await fetch(`${process.env.REACT_APP_API_ENV}/api/Chat/${currentUserId}`);
       if (!res.ok) throw new Error();
       const chatsData = await res.json();
       const existingChat = chatsData.find(
@@ -60,7 +60,7 @@ const ProductDetail = () => {
         chat = existingChat;
       } else {
         const createRes = await fetch(
-          `https://localhost:44367/api/Chat/create?productId=${product.id}&buyerId=${currentUserId}`,
+          `${process.env.REACT_APP_API_ENV}/api/Chat/create?productId=${product.id}&buyerId=${currentUserId}`,
           { method: "POST" }
         );
         if (!createRes.ok) throw new Error();
