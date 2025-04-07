@@ -6,6 +6,8 @@ import LandingPage from "./components/LandingPage";
 import ClientHome from './components/ClientHome';
 import UserProfile from './components/UserProfile';
 import ProductsGrid from "./components/ProductsGrid";
+import ProductDetail from "./components/ProductDetail";
+import Chat from "./components/Chat";
 
 import AdminLayout from "./components/AdminLayout";
 import AdminDashboard from "./components/AdminDashboard";
@@ -40,6 +42,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/products" element={<ProductsGrid />} />
+        <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/admin/category" element={<Category />} /> 
         <Route path="/product" element={<ProductForm/>}/> 
         <Route path="/provider" element={<ProviderPage/>}/> 
@@ -68,6 +71,7 @@ function App() {
           <Route path="catalogs" element={<CatalogManager />} />
         </Route>
         <Route path="/home" element={<ClientHome />} />
+        <Route path="/chats" element={<Chat />} />
         <Route path='/profile' element={<UserProfile/>}/>
       </Routes>
     </Router>

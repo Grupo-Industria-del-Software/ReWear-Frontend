@@ -1,9 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
 
 const FiltersBar = () => {
-  const categories = ["Ropa", "Accesorios", "Marcas"];
   const filtersRef = useRef(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 600);
 
@@ -37,39 +34,11 @@ const FiltersBar = () => {
     padding: '0 1rem'
   };
 
-  const categoryLinkStyle = {
-    color: '#E1DAD3',
-    fontFamily: 'Poppins',
-    textDecoration: 'none',
-    fontSize: isMobile ? '0.7rem' : '0.8rem',
-    fontWeight: 600,
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px',
-    transition: 'all 0.3s ease',
-    padding: isMobile ? '0.5rem 0.75rem' : '0.6rem 1rem',
-    whiteSpace: 'nowrap',
-    display: 'block',
-    background: 'linear-gradient(to bottom, transparent 50%, rgba(162, 105, 100, 0.1) 50%)',
-    backgroundSize: '100% 200%',
-    borderRadius: '8px'
-  };
-
   return (
     <nav ref={filtersRef} style={styles.container}>
       <div style={styles.invertedBorder}></div>
       <div style={contentStyle}>
-        {categories.map((category) => (
-          <motion.div
-            key={category}
-            style={styles.categoryItem}
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: "spring", stiffness: 300 }}
-          >
-            <Link to={`/${category.toLowerCase()}`} style={categoryLinkStyle}>
-              {category}
-            </Link>
-          </motion.div>
-        ))}
+
       </div>
     </nav>
   );
