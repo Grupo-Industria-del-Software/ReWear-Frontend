@@ -1,0 +1,45 @@
+name: Deploy React App Windows
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code (opcional)
+        uses: actions/checkout@v4  
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull React image from GHCR
+        shell: powershell
+        run: |
+          $repo = "${{ github.repository }}".ToLower()
+          $imageName = "ghcr.io/$repo/ui:latest"  # Ajusta el tag si es necesario
+          Write-Host "Pulling image: $imageName"
+          docker pull $imageName
+
+      - name: Stop and remove existing container
+        shell: powershell
+        run: |
+          docker ps -a -q -f name=react_app | ForEach-Object { docker rm -f $_ }
+          Write-Host "Old container removed (if any)."
+
+      - name: Run React container
+        shell: powershell
+        run: |
+          $imageName = "ghcr.io/$(${{ github.repository }}.ToLower())/ui:latest"
+          Write-Host "Starting container from: $imageName"
+          docker run -d `
+            -p 3000:80 `
+            --name react_app `
+            --restart unless-stopped `
+            $imageName
+          Write-Host "Container started successfully!"
