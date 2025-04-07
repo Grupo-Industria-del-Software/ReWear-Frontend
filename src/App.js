@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Login from "./components/Login";
 import Register from "./components/Register";
-import ForgotPassword from "./components/ForgotPassword";
 import LandingPage from "./components/LandingPage";
 import ClientHome from './components/ClientHome';
 import UserProfile from './components/UserProfile';
@@ -37,10 +36,8 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/products" element={<ProductsGrid />} />
         <Route path="/product/:id" element={<ProductDetail />} />
-        <Route path="/admin/category" element={<Category />} /> 
         <Route path="/product" element={<ProductForm/>}/> 
         <Route path="/provider" element={<ProviderPage/>}/> 
         <Route path="/order" element={<OrderForm/>}/> 
@@ -69,6 +66,7 @@ function App() {
         </Route>
         <Route path="/home" element={<ClientHome />} />
         <Route path="/chats" element={<Chat />} />
+        <Route path="/chats/:id" element={<Chat />} />
         <Route path='/profile' element={<UserProfile/>}/>
       </Routes>
     </Router>

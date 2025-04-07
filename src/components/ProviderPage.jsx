@@ -14,6 +14,7 @@ const ProviderPage = () => {
         return <ProductList />;
       case 'chat':
         return <ChatProvider />;
+
       case 'orders':
         return <OrdersList />;
       case 'profile':

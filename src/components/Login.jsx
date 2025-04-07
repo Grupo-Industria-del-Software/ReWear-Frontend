@@ -159,7 +159,6 @@ const Login = () => {
           </motion.button>
         </form>
         <motion.div className="footer" initial={{ y: 20 }} animate={{ y: 0 }}>
-          <a href="/forgot-password" className="link">¿Olvidaste tu contraseña?</a>
           <span className="dot">•</span>
           <a href="/register" className="link">¿No tienes una cuenta? ¡Crea una!</a>
         </motion.div>

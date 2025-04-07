@@ -2,7 +2,7 @@ import { useState } from 'react';
 import AuthNavBar from './AuthNavBar';
 import Footer from './Footer';
 import ProfileEditor from './ProfileEditor';
-import OrderHistory from './OrderHistory';
+import OrderListCustomer from './OrderListCustomer';
 
 const UserProfile = () => {
   const [activeTab, setActiveTab] = useState('profile');
@@ -34,7 +34,7 @@ const UserProfile = () => {
           </div>
 
           <div style={styles.tabContent}>
-            {activeTab === 'profile' ? <ProfileEditor /> : <OrderHistory />}
+            {activeTab === 'profile' ? <ProfileEditor /> : <OrderListCustomer />}
           </div>
         </div>
       </div>
