@@ -13,7 +13,7 @@ const ProviderPage = () => {
       case 'products':
         return <ProductList />;
       case 'chat':
-        return <Chat />;
+       return <Chat />;
       case 'orders':
         return <OrdersList />;
       case 'profile':

@@ -1,36 +1,12 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { FiShoppingBag, FiHome, FiMessageCircle, FiUser, FiLogOut, FiSearch, FiMenu, FiX } from "react-icons/fi";
+import { FiShoppingBag, FiHome, FiMessageCircle, FiUser, FiLogOut, FiMenu, FiX } from "react-icons/fi";
 import { useState, useEffect } from 'react';
-
-const SearchBar = ({ query, onQueryChange, onSubmit, mobile = false, styles }) => (
-  <motion.form
-    onSubmit={onSubmit}
-    style={{
-      ...styles.searchContainer,
-      ...(mobile ? styles.mobileSearchContainer : {})
-    }}
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    transition={{ duration: 0.3 }}
-  >
-    <FiSearch style={styles.searchIcon} onClick={onSubmit} />
-    <input
-      type="text"
-      placeholder="Buscar prendas, marcas..."
-      style={styles.searchInput}
-      value={query}
-      onChange={(e) => onQueryChange(e.target.value)}
-      aria-label="Buscar prendas"
-    />
-  </motion.form>
-);
 
 const AuthNavBar = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -50,16 +26,6 @@ const AuthNavBar = () => {
     setIsMenuOpen(false);
   };
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      console.log('Buscar:', searchQuery);
-      // navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
-      setSearchQuery('');
-      setIsMenuOpen(false);
-    }
-  };
-
   return (
     <nav id="navbar" style={styles.navbar}>
       <div style={styles.innerContainer}>
@@ -72,12 +38,6 @@ const AuthNavBar = () => {
 
         {!isMobile ? (
           <div style={styles.desktopNavLinks}>
-            <SearchBar
-              query={searchQuery}
-              onQueryChange={setSearchQuery}
-              onSubmit={handleSearch}
-              styles={styles}
-            />
             <motion.button
               onClick={() => handleNavigation("/home")}
               style={styles.navLink}
@@ -139,13 +99,6 @@ const AuthNavBar = () => {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
               >
-                <SearchBar
-                  mobile={true}
-                  query={searchQuery}
-                  onQueryChange={setSearchQuery}
-                  onSubmit={handleSearch}
-                  styles={styles}
-                 />
 
                 <motion.button
                   onClick={() => handleNavigation("/home")}
@@ -248,42 +201,6 @@ const styles = {
     alignItems: 'center',
     flexGrow: 1,
     justifyContent: 'flex-end',
-  },
-  searchContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    position: 'relative',
-    margin: '0 1.5rem',
-    flexGrow: 1,
-    maxWidth: '500px',
-  },
-  mobileSearchContainer: {
-    margin: '0 0 1rem 0',
-    width: '100%',
-    maxWidth: 'none',
-    flexGrow: 0,
-  },
-  searchInput: {
-    width: '100%',
-    padding: '0.7rem 1rem 0.7rem 2.5rem',
-    borderRadius: '20px',
-    border: '1px solid transparent',
-    backgroundColor: 'rgba(248, 245, 242, 0.8)',
-    color: '#6b4b48',
-    fontSize: '0.95rem',
-    fontFamily: "'Poppins', sans-serif",
-    transition: 'all 0.3s ease',
-    outline: 'none',
-    boxSizing: 'border-box',
-  },
-  searchIcon: {
-    position: 'absolute',
-    left: '12px',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    color: '#A26964',
-    fontSize: '1.1rem',
-    cursor: 'pointer',
   },
   navLink: {
     color: '#E1DAD3',
