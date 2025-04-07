@@ -12,7 +12,6 @@ const OrderList = () => {
         const token = sessionStorage.getItem('accessToken');
         if (!token) throw new Error('No se encontró token de autenticación.');
 
-        // Ejemplo: si no necesitas filtros, simplemente quita los params
         const res = await fetch(`https://localhost:44367/api/order/user`, {
           method: 'GET',
           headers: {
@@ -78,10 +77,6 @@ const OrderList = () => {
               </span>
             </div>
           </div>
-
-          {/* Si quieres detalles de cada producto, podrías hacer otra llamada:
-              fetch(`https://localhost:44367/api/order/${order.id}`, ...) 
-              y mostrar orderDetails.products aquí */}
         </div>
       ))}
     </div>
