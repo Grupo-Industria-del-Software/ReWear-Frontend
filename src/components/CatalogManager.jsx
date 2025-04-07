@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { FaEdit, FaTrash, FaSpinner } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const backendUrl = "https://localhost:7039";
+const backendUrl = "https://localhost:44367";
 
 const CatalogManager = ({ catalogName, fields, endpoint }) => {
   const [data, setData] = useState([]);
@@ -11,15 +11,15 @@ const CatalogManager = ({ catalogName, fields, endpoint }) => {
   const [currentItem, setCurrentItem] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const initializeItem = () => {
+  const initializeItem = useCallback(() => {
     const newItem = { id: null };
     fields.forEach(field => {
       newItem[field.name] = field.type === "checkbox" ? false : "";
     });
     return newItem;
-  };
+  }, [fields]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await fetch(`${backendUrl}${endpoint}`);
@@ -32,12 +32,12 @@ const CatalogManager = ({ catalogName, fields, endpoint }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [endpoint]);
 
   useEffect(() => {
     fetchData();
     setCurrentItem(initializeItem());
-  }, [endpoint]);
+  }, [fetchData, initializeItem, endpoint]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -73,7 +73,6 @@ const CatalogManager = ({ catalogName, fields, endpoint }) => {
 
       if (!isValid) return;
 
-      // Preparar datos para enviar
       const requestBody = {};
       fields.forEach(field => {
         requestBody[field.name] = field.type === "number" && currentItem[field.name] !== "" 
@@ -103,7 +102,6 @@ const CatalogManager = ({ catalogName, fields, endpoint }) => {
 
       const result = await response.json();
 
-      // Actualizar estado
       if (method === "POST") {
         setData(prev => [...prev, result]);
         toast.success("Registro creado exitosamente!");
@@ -112,7 +110,6 @@ const CatalogManager = ({ catalogName, fields, endpoint }) => {
         toast.success("Registro actualizado exitosamente!");
       }
 
-      // Resetear formulario
       setIsEditing(false);
       setCurrentItem(initializeItem());
 
@@ -151,73 +148,22 @@ const CatalogManager = ({ catalogName, fields, endpoint }) => {
   };
 
   const styles = {
-    container: {
-      padding: "20px",
-      fontFamily: "'Poppins', sans-serif",
-    },
-    title: {
-      color: "#A26964",
-      fontSize: "24px",
-      marginBottom: "20px",
-    },
-    form: {
-      marginBottom: "20px",
-    },
-    formGroup: {
-      marginBottom: "10px",
-    },
-    label: {
-      display: "block",
-      marginBottom: "5px",
-      color: "#A26964",
-    },
-    input: {
-      width: "100%",
-      padding: "8px",
-      borderRadius: "4px",
-      border: "1px solid #A26964",
-    },
-    button: {
-      backgroundColor: "#A26964",
-      color: "#E1DAD3",
-      padding: "10px 20px",
-      borderRadius: "4px",
-      border: "none",
-      cursor: "pointer",
-      marginRight: "10px",
-    },
-    cancelButton: {
-      backgroundColor: "#A2B0CA",
-      color: "#E1DAD3",
-      padding: "10px 20px",
-      borderRadius: "4px",
-      border: "none",
-      cursor: "pointer",
-    },
-    table: {
-      width: "100%",
-      borderCollapse: "collapse",
-    },
-    th: {
-      backgroundColor: "#A26964",
-      color: "#E1DAD3",
-      padding: "10px",
-      textAlign: "left",
-    },
-    tr: {
-      borderBottom: "1px solid #A26964",
-    },
-    td: {
-      padding: "10px",
-      color: "#A26964",
-    },
-    actionButton: {
-      backgroundColor: "transparent",
-      border: "none",
-      cursor: "pointer",
-      color: "#A26964",
-      marginRight: "10px",
-    },
+    container: { padding: "20px", fontFamily: "'Poppins', sans-serif" },
+    title: { color: "#A26964", fontSize: "24px", marginBottom: "20px" },
+    form: { marginBottom: "20px" },
+    formGroup: { marginBottom: "10px" },
+    label: { display: "block", marginBottom: "5px", color: "#A26964" },
+    input: { width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #A26964" },
+    button: { backgroundColor: "#A26964", color: "#E1DAD3", padding: "10px 20px", 
+             borderRadius: "4px", border: "none", cursor: "pointer", marginRight: "10px" },
+    cancelButton: { backgroundColor: "#A2B0CA", color: "#E1DAD3", padding: "10px 20px", 
+                   borderRadius: "4px", border: "none", cursor: "pointer" },
+    table: { width: "100%", borderCollapse: "collapse" },
+    th: { backgroundColor: "#A26964", color: "#E1DAD3", padding: "10px", textAlign: "left" },
+    tr: { borderBottom: "1px solid #A26964" },
+    td: { padding: "10px", color: "#A26964" },
+    actionButton: { backgroundColor: "transparent", border: "none", cursor: "pointer", 
+                   color: "#A26964", marginRight: "10px" }
   };
 
   return (
@@ -263,11 +209,7 @@ const CatalogManager = ({ catalogName, fields, endpoint }) => {
         ))}
 
         <div>
-          <button
-            type="submit"
-            style={styles.button}
-            disabled={isLoading}
-          >
+          <button type="submit" style={styles.button} disabled={isLoading}>
             {isLoading ? (
               <FaSpinner style={{ animation: "spin 1s linear infinite" }} />
             ) : isEditing ? (
@@ -305,9 +247,7 @@ const CatalogManager = ({ catalogName, fields, endpoint }) => {
             <tr>
               <th style={styles.th}>ID</th>
               {fields.map(field => (
-                <th key={field.name} style={styles.th}>
-                  {field.label}
-                </th>
+                <th key={field.name} style={styles.th}>{field.label}</th>
               ))}
               <th style={styles.th}>Acciones</th>
             </tr>
@@ -319,29 +259,17 @@ const CatalogManager = ({ catalogName, fields, endpoint }) => {
                 {fields.map(field => (
                   <td key={field.name} style={styles.td}>
                     {field.type === "checkbox" ? (
-                      <input
-                        type="checkbox"
-                        checked={item[field.name] || false}
-                        readOnly
-                      />
+                      <input type="checkbox" checked={item[field.name] || false} readOnly />
                     ) : (
                       item[field.name]
                     )}
                   </td>
                 ))}
                 <td style={styles.td}>
-                  <button
-                    onClick={() => handleEdit(item)}
-                    style={styles.actionButton}
-                    title="Editar"
-                  >
+                  <button onClick={() => handleEdit(item)} style={styles.actionButton} title="Editar">
                     <FaEdit />
                   </button>
-                  <button
-                    onClick={() => handleDelete(item.id)}
-                    style={styles.actionButton}
-                    title="Eliminar"
-                  >
+                  <button onClick={() => handleDelete(item.id)} style={styles.actionButton} title="Eliminar">
                     <FaTrash />
                   </button>
                 </td>
