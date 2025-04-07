@@ -343,7 +343,7 @@ const styles = {
     justifyContent: 'flex-start',
     textAlign: 'left',
     padding: '0.8rem 1rem',
-    color: '#5b4240',
+    color: '#A2B0CA',
     fontSize: '1.05rem',
   }
 };

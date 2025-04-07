@@ -1,5 +1,4 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
 import Footer from "./Footer";
 import AuthNavBar from './AuthNavBar';
 import FiltersBar from './FiltersBar';
@@ -7,100 +6,192 @@ import { FiShoppingBag, FiArrowRight } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import ProductCard from './ProductCard';
 
-const products = [
-  {
-    id: 1,
-    name: 'Vestido de noche elegante',
-    brand: 'Vintage Luxe',
-    category: 'Vestidos',
-    condition: 'Nuevo',
-    size: 'M',
-    available: true,
-    forSale: true,
-    forRent: false,
-    salePrice: 120,
-    dailyPrice: null,
-    images: [''],
-    provider: { name: 'María Fernández' }
-  },
-  {
-    id: 2,
-    name: 'Chaqueta de cuero vintage',
-    brand: 'Retro Style',
-    category: 'Abrigos',
-    condition: 'Usado',
-    size: 'L',
-    available: true,
-    forSale: true,
-    forRent: true,
-    salePrice: 200,
-    dailyPrice: 25,
-    images: [''],
-    provider: { name: 'Carlos Mendoza' }
-  }
-];
 const ClientHome = () => {
-  const navigate = useNavigate();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const handleNavigation = (path) => {
-    navigate(path);
-  };
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('https://localhost:44367/api/Product');
+        if (!response.ok) throw new Error('Error al obtener productos');
+        const data = await response.json();
+        setProducts(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
   return (
-    <div className="relative min-h-screen bg-beige overflow-hidden font-poppins">
-   
-    <div className="absolute w-[800px] h-[800px] -top-60 -right-60 bg-nude opacity-30 rounded-full" />
-    <div className="absolute w-[400px] h-[400px] top-1/2 -left-24 bg-baby-blue opacity-20 rounded-full" />
-
+    <div style={styles.container}>
+      <div style={styles.circleOne}></div>
+      <div style={styles.circleTwo}></div>
       <AuthNavBar />
       <FiltersBar />
-
-      <section className="relative z-10 pt-32 px-5 md:px-8 lg:px-12">
-        <div className="max-w-3xl mx-auto text-center">
-          <h1 className="font-playfair font-bold text-4xl md:text-5xl text-coffee mb-4">
-            Moda Circular
-          </h1>
-          <p className="text-xl md:text-2xl text-baby-blue mb-8">
-            Descubre prendas únicas y contribuye a la moda sostenible
-          </p>
-          <Link
-            to="/products"
-            className="bg-coffee text-beige px-8 py-3 rounded-full inline-flex items-center gap-2 hover:bg-coffee/90 transition-colors"
-          >
-            <FiShoppingBag className="text-xl" />
+      <section style={styles.heroSection}>
+        <div style={styles.heroInner}>
+          <h1 style={styles.heroTitle}>Moda Circular</h1>
+          <p style={styles.heroSubtitle}>Descubre prendas únicas y contribuye a la moda sostenible</p>
+          <Link to="/products" style={styles.exploreButton}>
+            <FiShoppingBag style={styles.exploreIcon} />
             <span>Explorar Colección</span>
           </Link>
         </div>
       </section>
-
-      <section className="pb-16 px-5 md:px-8 lg:px-12 mt-10">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="font-playfair font-bold text-3xl text-coffee">Destacados</h2>
-            <button 
-              onClick={() => handleNavigation('/products')}
-              className="flex items-center gap-2 text-coffee font-bold hover:text-coffee/80 transition-colors"
-            >
+      <section style={styles.featuredSection}>
+        <div style={styles.featuredContainer}>
+          <div style={styles.featuredHeader}>
+            <h2 style={styles.featuredTitle}>Destacados</h2>
+            <Link to="/products" style={styles.viewAllButton}>
               <span>Ver todos</span>
               <FiArrowRight />
-            </button>
+            </Link>
           </div>
-          
-          <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
-            {products.map((product) => (
-              <div 
-                key={product.id}
-                className="min-w-[300px] flex-1"
-              >
-                <ProductCard product={product} />
-              </div>
-            ))}
-          </div>
+          {loading ? (
+            <div style={styles.loading}>Cargando productos...</div>
+          ) : error ? (
+            <div style={styles.error}>Error: {error}</div>
+          ) : (
+            <div style={styles.productsRow}>
+              {products.slice(0, 5).map((product) => (
+                <div key={product.Id} style={styles.productWrapper}>
+                  <ProductCard product={product} />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
-
       <Footer />
     </div>
   );
 };
 
+const styles = {
+  container: {
+    position: "relative",
+    minHeight: "100vh",
+    backgroundColor: "#F8F5F2",
+    overflow: "hidden",
+    fontFamily: "Poppins, sans-serif"
+  },
+  circleOne: {
+    position: "absolute",
+    width: "800px",
+    height: "800px",
+    top: "-240px",
+    right: "-240px",
+    backgroundColor: "#E4C9B6",
+    opacity: 0.3,
+    borderRadius: "50%"
+  },
+  circleTwo: {
+    position: "absolute",
+    width: "400px",
+    height: "400px",
+    top: "50%",
+    left: "-96px",
+    backgroundColor: "#A2B0CA",
+    opacity: 0.2,
+    borderRadius: "50%"
+  },
+  heroSection: {
+    position: "relative",
+    zIndex: 10,
+    paddingTop: "128px",
+    paddingLeft: "20px",
+    paddingRight: "20px"
+  },
+  heroInner: {
+    maxWidth: "768px",
+    margin: "0 auto",
+    textAlign: "center"
+  },
+  heroTitle: {
+    fontFamily: '"Playfair Display", serif',
+    fontWeight: "bold",
+    fontSize: "2.25rem",
+    color: "#A26964",
+    marginBottom: "1rem"
+  },
+  heroSubtitle: {
+    fontSize: "1.25rem",
+    color: "#A2B0CA",
+    marginBottom: "2rem"
+  },
+  exploreButton: {
+    backgroundColor: "#A26964",
+    color: "#F8F5F2",
+    padding: "0.75rem 2rem",
+    borderRadius: "9999px",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "0.5rem",
+    textDecoration: "none"
+  },
+  exploreIcon: {
+    fontSize: "1.25rem"
+  },
+  featuredSection: {
+    paddingBottom: "64px",
+    paddingLeft: "20px",
+    paddingRight: "20px",
+    marginTop: "40px"
+  },
+  featuredContainer: {
+    maxWidth: "1280px",
+    margin: "0 auto"
+  },
+  featuredHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "32px"
+  },
+  featuredTitle: {
+    fontFamily: '"Playfair Display", serif',
+    fontWeight: "bold",
+    fontSize: "1.875rem",
+    color: "#A26964"
+  },
+  viewAllButton: {
+    display: "flex",
+    alignItems: "center",
+    gap: "0.5rem",
+    color: "#A26964",
+    fontWeight: "bold",
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    padding: "8px 12px",
+    position: "relative",
+    zIndex: 20,
+  },
+  productsRow: {
+    display: "flex",
+    gap: "1.5rem",
+    overflowX: "auto",
+    paddingBottom: "16px"
+  },
+  productWrapper: {
+    minWidth: "300px",
+    flex: 1
+  },
+  loading: {
+    textAlign: 'center',
+    padding: '2rem',
+    color: '#A26964'
+  },
+  error: {
+    textAlign: 'center',
+    padding: '2rem',
+    color: '#ff0000'
+  },
+};
 export default ClientHome;
