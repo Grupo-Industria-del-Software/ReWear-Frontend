@@ -3,7 +3,7 @@ import { jwtDecode } from 'jwt-decode';
 import { FiLock, FiUser, FiShoppingBag, FiHeart, FiCheckCircle, FiAlertCircle, FiEye, FiEyeOff } from "react-icons/fi";
 import { motion } from "framer-motion";
 
-const API_BASE = 'https://localhost:44367/api/Auth';
+const API_BASE = `${process.env.REACT_APP_API_ENV}/api/Auth`;
 
 async function refreshAccessToken() {
   const refreshToken = sessionStorage.getItem('refreshToken');

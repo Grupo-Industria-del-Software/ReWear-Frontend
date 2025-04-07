@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ProviderNavbar from './ProviderNabvar';
 import ProductList from './ProductList';
-import Chat from './Chat';
+import ChatProvider from './ChatProvider';
 import OrdersList from './OrderList';
 import Profile from './ProfileProvider';
 
@@ -13,7 +13,8 @@ const ProviderPage = () => {
       case 'products':
         return <ProductList />;
       case 'chat':
-       return <Chat />;
+        return <ChatProvider />;
+
       case 'orders':
         return <OrdersList />;
       case 'profile':
