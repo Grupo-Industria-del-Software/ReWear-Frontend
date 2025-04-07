@@ -191,7 +191,7 @@ const Chat = () => {
           )}
         </div>
       </div>
-    </div>
+    </div >
   );
 };  
 
