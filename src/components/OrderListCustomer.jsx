@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 
-const OrderList = () => {
+const OrderListCustomer = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -11,21 +11,19 @@ const OrderList = () => {
       try {
         const token = sessionStorage.getItem('accessToken');
         if (!token) throw new Error('No se encontró token de autenticación.');
-
-        const res = await fetch(`https://localhost:44367/api/order/user`, {
+        const res = await fetch('https://localhost:44367/api/order/customer', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
+            Authorization: `Bearer ${token}`
+          }
         });
-
         if (!res.ok) {
           const message = await res.text();
           throw new Error(`Error ${res.status}: ${message}`);
         }
-
         const data = await res.json();
+        console.log("Respuesta de la API:", data);
         setOrders(data);
       } catch (err) {
         console.error(err);
@@ -34,12 +32,11 @@ const OrderList = () => {
         setLoading(false);
       }
     };
-
     fetchOrders();
   }, []);
 
   if (loading) return <p className="p-4 text-center">Cargando órdenes...</p>;
-  if (error)   return <p className="p-4 text-red-500 text-center">Error: {error}</p>;
+  if (error) return <p className="p-4 text-red-500 text-center">Error: {error}</p>;
   if (!orders.length) return <p className="p-4 text-center">No tienes órdenes aún.</p>;
 
   return (
@@ -62,7 +59,6 @@ const OrderList = () => {
               {order.orderStatus}
             </span>
           </div>
-
           <div className="flex flex-wrap gap-8 mb-6">
             <div className="flex flex-col gap-1">
               <span className="text-[#A26964] text-sm font-serif">Fecha:</span>
@@ -83,4 +79,4 @@ const OrderList = () => {
   );
 };
 
-export default OrderList;
+export default OrderListCustomer;
