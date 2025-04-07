@@ -3,7 +3,7 @@ import { Upload } from "lucide-react";
 import Select from "react-select";
 import { motion } from "framer-motion";
 
-// Componentes de UI (igual que antes)
+// Componentes reutilizables
 const Input = ({ className, ...props }) => (
   <input className={`border rounded-lg p-2 w-full ${className}`} {...props} />
 );
@@ -32,7 +32,6 @@ const Label = ({ className, children, ...props }) => (
   </label>
 );
 
-// Switch sin disparar submit
 const Switch = ({ checked, onCheckedChange, className }) => {
   const [isChecked, setIsChecked] = useState(checked);
   const handleChange = () => {
@@ -42,10 +41,16 @@ const Switch = ({ checked, onCheckedChange, className }) => {
   return (
     <button
       type="button"
-      className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors duration-300 ${isChecked ? "bg-[#C191A1]" : "bg-gray-300"} ${className}`}
+      className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors duration-300 ${
+        isChecked ? "bg-[#C191A1]" : "bg-gray-300"
+      } ${className}`}
       onClick={handleChange}
     >
-      <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${isChecked ? "translate-x-6" : "translate-x-0"}`} />
+      <div
+        className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${
+          isChecked ? "translate-x-6" : "translate-x-0"
+        }`}
+      />
     </button>
   );
 };
@@ -73,33 +78,32 @@ export default function ProductForm() {
   const [productStatuses, setProductStatuses] = useState([]);
   const [images, setImages] = useState([]);
 
-  // Cargar datos de la API
   useEffect(() => {
     const fetchData = async () => {
       try {
         const endpoints = [
           {
-            url: "https://localhost:44367/api/Category",
+            url: `${process.env.REACT_APP_API_ENV}/api/Category`,
             setter: setCategories,
-            mapper: (item) => ({ value: item.id, label: item.name }),
+            mapper: (item) => ({ value: item.id, label: item.label }),
           },
           {
-            url: "https://localhost:44367/api/condition",
+            url: `${process.env.REACT_APP_API_ENV}/api/condition`,
             setter: setConditions,
-            mapper: (item) => ({ value: item.id, label: item.name }),
+            mapper: (item) => ({ value: item.id, label: item.label }),
           },
           {
-            url: "https://localhost:44367/api/Size",
+            url: `${process.env.REACT_APP_API_ENV}/api/Size`,
             setter: setSizes,
             mapper: (item) => ({ value: item.id, label: item.label }),
           },
           {
-            url: "https://localhost:44367/api/Brand",
+            url: `${process.env.REACT_APP_API_ENV}/api/Brand`,
             setter: setBrands,
             mapper: (item) => ({ value: item.id, label: item.label }),
           },
           {
-            url: "https://localhost:44367/api/ProductStatus",
+            url: `${process.env.REACT_APP_API_ENV}/api/ProductStatus`,
             setter: setProductStatuses,
             mapper: (item) => ({ value: item.id, label: item.label }),
           },
@@ -108,13 +112,16 @@ export default function ProductForm() {
         await Promise.all(
           endpoints.map(async (endpoint) => {
             const response = await fetch(endpoint.url);
-            if (!response.ok) {
-              throw new Error(`Error al obtener datos de ${endpoint.url}`);
-            }
+            if (!response.ok) throw new Error(`Error al obtener datos de ${endpoint.url}`);
             const data = await response.json();
             endpoint.setter(data.map(endpoint.mapper));
           })
         );
+
+        const storedUserId = sessionStorage.getItem("userId");
+        if (storedUserId) {
+          setFormData((prev) => ({ ...prev, userId: storedUserId }));
+        }
       } catch (error) {
         console.error("Error al cargar datos:", error);
       }
@@ -161,9 +168,14 @@ export default function ProductForm() {
         formDataToSend.append("images", image);
       });
 
-      const response = await fetch("https://localhost:44367/api/Product", {
+      const token = sessionStorage.getItem("accessToken");
+
+      const response = await fetch(`${process.env.REACT_APP_API_ENV}/api/Product`, {
         method: "POST",
         body: formDataToSend,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (!response.ok) {
@@ -173,6 +185,23 @@ export default function ProductForm() {
       const data = await response.json();
       console.log("Producto creado exitosamente:", data);
       alert("Producto creado exitosamente");
+
+      // Limpiar formulario e imágenes
+      setFormData({
+        userId: formData.userId,
+        categoryId: "",
+        conditionId: "",
+        sizeId: "",
+        brandId: "",
+        productStatusId: "",
+        name: "",
+        description: "",
+        isForSale: false,
+        isForRental: false,
+        price: "",
+        pricePerDay: "",
+      });
+      setImages([]);
     } catch (error) {
       console.error("Error al enviar formulario:", error);
       alert("Hubo un error al subir el producto");
@@ -185,16 +214,6 @@ export default function ProductForm() {
         <Card className="max-w-lg w-full mx-auto p-6 bg-[#FFF8F5] shadow-lg rounded-2xl">
           <CardContent>
             <h2 className="text-2xl font-bold text-[#9F646D] mb-4">Subir Producto</h2>
-
-            {/* Input para ID de Usuario */}
-            <Input
-              type="number"
-              name="userId"
-              value={formData.userId}
-              onChange={(e) => handleChange(e.target.name, e.target.value)}
-              placeholder="ID de Usuario"
-              className="mb-4"
-            />
 
             {/* Selects para Categoría, Condición, Tamaño, Marca, Estado */}
             <div className="grid grid-cols-2 gap-4">
@@ -276,14 +295,12 @@ export default function ProductForm() {
               />
             </div>
 
-            {/* Botón de cargar imágenes (igual que antes) */}
             <Label className="flex flex-col items-center border-2 border-dashed border-[#EACDD0] p-4 rounded-lg cursor-pointer mt-4 text-[#9F646D]">
               <Upload className="w-8 h-8 text-[#CBA3AC]" />
               <span className="text-sm">Subir Imágenes</span>
               <input type="file" name="images" className="hidden" multiple onChange={handleImageChange} />
             </Label>
 
-            {/* Previsualización de imágenes */}
             <div className="mt-4 flex flex-wrap gap-4">
               {images.map((image, index) => {
                 const previewUrl = URL.createObjectURL(image);
@@ -302,7 +319,6 @@ export default function ProductForm() {
               })}
             </div>
 
-            {/* Botón de Subir Producto modificado con animación */}
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

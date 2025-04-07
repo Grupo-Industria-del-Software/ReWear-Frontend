@@ -26,6 +26,7 @@ import ProductStatus from "./components/ProductStatus";
 import OrderStatus from "./components/OrderStatus"; 
 import ProductForm from "./components/ProductFrom";
 import ProviderPage from "./components/ProviderPage";
+import OrderForm from "./components/OrderForm";
 
 function App() {
   console.log("App se está renderizando");
@@ -42,6 +43,9 @@ function App() {
         <Route path="/admin/category" element={<Category />} /> 
         <Route path="/product" element={<ProductForm/>}/> 
         <Route path="/provider" element={<ProviderPage/>}/> 
+        <Route path="/order" element={<OrderForm/>}/> 
+
+        
 
 
 
