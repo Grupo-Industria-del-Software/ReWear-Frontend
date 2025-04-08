@@ -35,7 +35,8 @@ jobs:
       - name: Run React container
         shell: powershell
         run: |
-          $imageName = "ghcr.io/$(${{ github.repository }}.ToLower())/ui:latest"
+          $repo = "${{ github.repository }}".ToLower()
+          $imageName = "ghcr.io/$repo/ui:latest"
           Write-Host "Starting container from: $imageName"
           docker run -d `
             -p 3000:80 `

@@ -62,13 +62,21 @@ const ProductList = () => {
   const [brands, setBrands] = useState([]);
   const [productStatuses, setProductStatuses] = useState([]);
 
+  // Estado para el modal/alerta de suscripción
+  const [showSubscriptionAlert, setShowSubscriptionAlert] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState(null);
+
   // Fetch de productos
   useEffect(() => {
     const fetchProducts = async () => {
       const token = sessionStorage.getItem("accessToken");
-      const res = await fetch(`${process.env.REACT_APP_API_ENV}/api/Product/user`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `${process.env.REACT_APP_API_ENV}/api/Product/user`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       const data = await res.json();
       setProducts(data);
     };
@@ -142,9 +150,7 @@ const ProductList = () => {
     fd.append("ProductStatusId", form.productStatusId.value);
 
     // Se usa el name "images" para que coincida con el controlador
-    Array.from(form.images.files).forEach((file) =>
-      fd.append("images", file)
-    );
+    Array.from(form.images.files).forEach((file) => fd.append("images", file));
 
     try {
       const res = await fetch(
@@ -167,6 +173,73 @@ const ProductList = () => {
     } catch (err) {
       console.error(err);
       alert("Error de conexión");
+    }
+  };
+
+  // Función para verificar la suscripción del usuario antes de crear un nuevo producto
+  const handleNewProductClick = async () => {
+    try {
+      const token = sessionStorage.getItem("accessToken");
+      if (!token) throw new Error("No se encontró token de autenticación.");
+
+      const res = await fetch(
+        `${process.env.REACT_APP_API_ENV}/api/subscription/info`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // Si el usuario tiene una suscripción activa, navega a la ruta "/product"
+      if (res.ok) {
+        navigate("/product");
+      } else if (res.status === 404) {
+        // Si no se encontró la suscripción, muestra el modal de alerta
+        setShowSubscriptionAlert(true);
+      } else {
+        const message = await res.text();
+        throw new Error(`Error ${res.status}: ${message}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error: " + err.message);
+    }
+  };
+
+  // Función para crear la sesión de checkout y redirigir automáticamente al URL recibido
+  const handleCheckoutSession = async () => {
+    setCheckoutLoading(true);
+    setCheckoutError(null);
+    try {
+      const token = sessionStorage.getItem("accessToken");
+      if (!token) throw new Error("No se encontró token de autenticación.");
+
+      const res = await fetch(
+        `${process.env.REACT_APP_API_ENV}/api/Payment/create-checkout-session`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!res.ok) {
+        const message = await res.text();
+        throw new Error(`Error ${res.status}: ${message}`);
+      }
+      const data = await res.json();
+      // Redireccionar automáticamente a la URL proporcionada por el endpoint
+      window.location.href = data.url;
+    } catch (err) {
+      console.error(err);
+      setCheckoutError(err.message);
+    } finally {
+      setCheckoutLoading(false);
     }
   };
 
@@ -203,12 +276,15 @@ const ProductList = () => {
           </div>
         ))}
       </div>
+
+      {/* Botón flotante de "+" para agregar un nuevo producto */}
       <button
-        onClick={() => navigate("/product")}
+        onClick={handleNewProductClick}
         className="fixed bottom-8 right-8 bg-[#A86B5A] hover:bg-[#A86B5A]/90 text-white w-16 h-16 rounded-full shadow-xl flex items-center justify-center text-4xl"
       >
         +
       </button>
+
       {showEditModal && selectedProduct && (
         <EditProductModal
           product={selectedProduct}
@@ -220,6 +296,36 @@ const ProductList = () => {
           onClose={closeModal}
           onSubmit={handleEditSubmit}
         />
+      )}
+
+      {/* Modal/Alerta para la suscripción */}
+      {showSubscriptionAlert && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-2xl p-8 mx-4 max-w-md w-full text-center">
+            <h3 className="text-2xl font-semibold text-[#A86B5A] mb-4">
+              No tienes Suscripción
+            </h3>
+            <p className="mb-6">
+              Para agregar productos, debes contar con una suscripción activa.
+            </p>
+            {checkoutError && (
+              <p className="text-red-500 text-sm mb-4">{checkoutError}</p>
+            )}
+            <button
+              onClick={handleCheckoutSession}
+              className="w-full py-2 bg-[#C2D2C7] hover:bg-[#A2B0CA] text-[#F8F5F2] rounded-full font-semibold transition"
+              disabled={checkoutLoading}
+            >
+              {checkoutLoading ? "Procesando..." : "Suscríbete"}
+            </button>
+            <button
+              onClick={() => setShowSubscriptionAlert(false)}
+              className="mt-4 text-sm text-gray-600 hover:underline"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

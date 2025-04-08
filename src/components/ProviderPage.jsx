@@ -3,8 +3,7 @@ import ProviderNavbar from './ProviderNabvar';
 import ProductList from './ProductList';
 import ChatProvider from './ChatProvider';
 import OrdersList from './OrderList';
-import Profile from './ProfileProvider';
-
+import ProviderProfiele from './ProviderProfiele';
 const ProviderPage = () => {
   const [activeTab, setActiveTab] = useState('products');
 
@@ -18,7 +17,7 @@ const ProviderPage = () => {
       case 'orders':
         return <OrdersList />;
       case 'profile':
-        return <Profile />;
+        return <ProviderProfiele />;
       default:
         return <ProductList />;
     }
