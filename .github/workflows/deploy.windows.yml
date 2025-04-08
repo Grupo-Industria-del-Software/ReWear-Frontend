@@ -22,7 +22,7 @@ jobs:
         shell: powershell
         run: |
           $repo = "${{ github.repository }}".ToLower()
-          $imageName = "ghcr.io/$repo/ui:latest"  # Ajusta el tag si es necesario
+          $imageName = "ghcr.io/$repo/ui:latest"
           Write-Host "Pulling image: $imageName"
           docker pull $imageName
 
