@@ -21,6 +21,7 @@ const ProductDetail = () => {
   const isMobile = width < 768;
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState(0);
   const currentUserId = sessionStorage.getItem("userId");
 
   useEffect(() => {
@@ -75,18 +76,13 @@ const ProductDetail = () => {
   if (loading) return <div>Loading...</div>;
   if (!product) return <div>Producto no encontrado</div>;
 
-  const conditionName =
-    product.condition && typeof product.condition === "object"
-      ? product.condition.label
-      : product.condition || "Condición no especificada";
-  const brandName =
-    product.brand && typeof product.brand === "object"
-      ? product.brand.label
-      : product.brand || "Marca no especificada";
-  const sizeValue =
-    product.size && typeof product.size === "object"
-      ? product.size.label
-      : product.size || "Talla no especificada";
+  const conditionName = product.condition?.label || "Condición no especificada";
+  const brandName = product.brand?.label || "Marca no especificada";
+  const sizeValue = product.size?.label || "Talla no especificada";
+  const hasMultipleImages = product.productImages?.length > 1;
+  const providerName = product.user 
+    ? `${product.user.firstName || ''} ${product.user.lastName || ''}`.trim() 
+    : "Proveedor no especificado";
 
   const styles = {
     pageContainer: {
@@ -205,6 +201,14 @@ const ProductDetail = () => {
       marginTop: "auto",
     },
     chatIcon: { width: isMobile ? "18px" : "20px", height: isMobile ? "18px" : "20px" },
+    providerText: {
+      color: "#6B6B6B",
+      fontSize: isMobile ? "14px" : "16px",
+      margin: "8px 0",
+      display: "flex",
+      alignItems: "center",
+      gap: "8px",
+    },
   };
 
   return (
@@ -215,23 +219,31 @@ const ProductDetail = () => {
           <div style={styles.galleryContainer}>
             <div style={styles.mainImageContainer}>
               <img
-                src={product.images?.[0]?.imageUrl || "/placeholder-image.jpg"}
+                src={product.productImages?.[selectedImage]?.imageUrl || "/placeholder-image.jpg"}
                 alt={product.name}
                 style={styles.mainImage}
+                onError={(e) => (e.target.src = "/placeholder-image.jpg")}
               />
             </div>
-            <div style={styles.thumbnailsContainer}>
-              {product.images?.map((img, i) => (
-                <img
-                  key={i}
-                  src={img.imageUrl}
-                  alt={`Vista ${i + 1}`}
-                  style={styles.thumbnail}
-                  onMouseOver={(e) => (e.currentTarget.style.borderColor = "#A26964")}
-                  onMouseOut={(e) => (e.currentTarget.style.borderColor = "transparent")}
-                />
-              ))}
-            </div>
+            {hasMultipleImages && (
+              <div style={styles.thumbnailsContainer}>
+                {product.productImages?.map((img, i) => (
+                  <img
+                    key={img.id}
+                    src={img.imageUrl}
+                    alt={`Vista ${i + 1}`}
+                    style={{ 
+                      ...styles.thumbnail, 
+                      borderColor: selectedImage === i ? "#A26964" : "transparent" 
+                    }}
+                    onClick={() => setSelectedImage(i)}
+                    onMouseOver={(e) => (e.currentTarget.style.borderColor = "#A26964")}
+                    onMouseOut={(e) => (e.currentTarget.style.borderColor = 
+                      selectedImage === i ? "#A26964" : "transparent")}
+                  />
+                ))}
+              </div>
+            )}
           </div>
           <div style={styles.infoContainer}>
             <div style={styles.header}>
@@ -247,6 +259,10 @@ const ProductDetail = () => {
                 </span>
                 <span style={styles.sizeText}>Talla {sizeValue}</span>
                 <span style={styles.brandText}>{brandName}</span>
+              </div>
+              <div style={styles.providerText}>
+                <span>Proveedor:</span>
+                <strong>{providerName}</strong>
               </div>
             </div>
             <div style={styles.priceBadges}>
